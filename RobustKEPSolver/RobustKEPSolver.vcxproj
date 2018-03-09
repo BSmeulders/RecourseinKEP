@@ -155,7 +155,9 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Benders.cpp" />
     <ClCompile Include="CycleFormulation.cpp" />
+    <ClCompile Include="Linear Relaxations KEP.cpp" />
     <ClCompile Include="MathHeuristics.cpp" />
     <ClCompile Include="UnlimitedCycle.cpp" />
     <ClCompile Include="Graph_Generation.cpp" />

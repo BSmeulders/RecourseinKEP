@@ -812,7 +812,7 @@ IloRangeArray Build_Vertex_Constraint_SSWR(IloEnv & env, const directedgraph & G
 	for (int i = 0; i < cycles.size(); i++)
 	{
 		for (int j = 0; j < cycles[i].arcs.size(); j++)
-			Vertex_Constraint[G.arcs[cycles[i].arcs[j]].startvertex].setLinearCoef(cyclevar[i], 1);
+		Vertex_Constraint[G.arcs[cycles[i].arcs[j]].startvertex].setLinearCoef(cyclevar[i], 1);
 	}
 	
 	

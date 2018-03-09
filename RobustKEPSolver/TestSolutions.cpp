@@ -142,8 +142,8 @@ vector<cycle_arcs> Split_SCC(const directedgraph & tested_G)
 						}
 					}
 				}
-				to_test.pop();
 				new_SCC.vertices.push_back(to_test.front());
+				to_test.pop();
 			}
 			if (new_SCC.vertices.size() > 1)
 			{

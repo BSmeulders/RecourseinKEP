@@ -18,9 +18,6 @@ void pre_test_main(configuration & config, directedgraph G)
 pre_test_result Pre_Test(directedgraph G, int chainlength, int cyclelength, int max_tests, int nr_scen, int time_limit, int scenario_generator, int failure_type, const configuration & config)
 {
 	directedgraph Tested_Graph = G;
-
-	
-
 	vector<directedgraph> Scenarios;
 	if (failure_type == 1)
 	{

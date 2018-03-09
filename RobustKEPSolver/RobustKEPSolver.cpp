@@ -44,6 +44,11 @@ void Choose_Solver(configuration & config, directedgraph & G)
 	}
 	else if (config.solver == 5)
 	{
+		cout << "Deterministic KEP" << endl;
+		benders_main(config, G);
+	}
+	else if (config.solver == 6)
+	{
 		cout << "Expected Transplants" << endl;
 		Calc_Expected_Transplants(config);
 	}

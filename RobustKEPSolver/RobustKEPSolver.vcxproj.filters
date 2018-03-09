@@ -68,5 +68,11 @@
     <ClCompile Include="MathHeuristics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Linear Relaxations KEP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Benders.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

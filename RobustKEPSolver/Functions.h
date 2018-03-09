@@ -16,10 +16,14 @@ directedgraph readgraph2(configuration & config, string filename);
 // Solvers for various Models
 void Choose_Solver(configuration & config, directedgraph & G);
 void pre_test_main(configuration & config, directedgraph G);
+void benders_main(configuration & config, directedgraph G);
 void Subset_Recourse(configuration & config, directedgraph G);
+void Deterministic_KEP(configuration & config, directedgraph G);
 pre_test_result Pre_Test(directedgraph G, int chainlength, int cyclelength, int max_tests, int nr_scen, int time_limit, int scen_gen, int failure_type, const configuration & config); // Pre_test outputs a new graph, using only the arcs chosen in the optimization.
 matching_result Hybrid_PIEF(directedgraph G, int chainlength, int cyclength, configuration & config);
 matching_result PICEF(directedgraph G, configuration & config);
+matching_result Cycle_Formulation_Linear(directedgraph G, configuration & config);
+matching_result Cycle_Formulation_Integer(directedgraph G, configuration & config);
 
 
 // Pre-Testing Optimization Functions

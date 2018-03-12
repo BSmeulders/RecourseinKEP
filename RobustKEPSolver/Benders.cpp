@@ -280,7 +280,7 @@ pre_test_result Bender_HPIEF(directedgraph G, configuration &config)
 
 	IloCplex CPLEX(model);
 	CPLEX.setParam(IloCplex::TiLim, config.time_limit);
-	CPLEX.setParam(IloCplex::TreLim, config.memory_limit);
+	CPLEX.setParam(IloCplex::WorkMem, config.memory_limit);
 	CPLEX.setParam(IloCplex::Param::Benders::Strategy, IloCplex::BendersFull);
 	CPLEX.solve();
 

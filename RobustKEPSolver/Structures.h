@@ -30,12 +30,12 @@ struct patient_donor_pair {
 struct cycle_arcs {
 	vector<int> arcs;	// A vector, giving the arc numbers (reference to position in G.arcs)
 	vector<int> vertices;	// A vector giving the vertices involved in the cycle in order.
-	float weight = 0;		// The weight of the arcs involved in the optimization problem.
+	float weight;		// The weight of the arcs involved in the optimization problem.
 	float value; // The value assigned to the cycle in the optimization solution.
 };
 struct cycle {
 	vector<int> vertices;	// A vector giving the vertices involved in the cycle in order.
-	float weight = 0;			// The weight of the arcs involved in the optimization problem.
+	float weight;			// The weight of the arcs involved in the optimization problem.
 };
 
 struct cycle_arc_reference { // The vector of integers here are references to the individual arcs that make up the cycele

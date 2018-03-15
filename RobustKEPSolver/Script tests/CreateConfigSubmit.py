@@ -14,8 +14,16 @@ sep = "/"
 # Path to the directory containing the instance files to test
 dirPath = ""
 
+cycleLength = 3
+
+chainLength = 3
+
+failureType = 2
+
 # Memory limit for the cluster
 memLimitCluster = 2048
+
+timeLimitCluster = "3:00:00"
 
 nrScenarios = 100
 
@@ -47,25 +55,34 @@ RKEPbin = "RobustKEP"
 
 # Parsing arguments for config and submits files
 def parseArguments():
-    global dirPath, nrScenarios, solverType, formulation, timeLimitCplex, memLimitCplex, memLimitCluster, mailCluster, RKEPbin
+    global dirPath, nrScenarios, solverType, formulation, timeLimitCplex, memLimitCplex, memLimitCluster, mailCluster, RKEPbin, timeLimitCluster
+    global cycleLength, chainLength, failureType
     parser = argparse.ArgumentParser(description='Generates configuration and submission file for RKEP tests')
     parser.add_argument('--directory', '-dir', action='store', type=str, required=True, help="[REQUIRED] path (relative or absolute) to directory containing tests instances.")
     parser.add_argument('--nrscenarios', '-nrs', action='store', type=int, default = 100, help="Number of scenarios. Default = 100")
+    parser.add_argument('--cycle', '-cy', action='store', type=int, default = 3, help="Maximum cycle length. Default = 3")
+    parser.add_argument('--chain', '-ch', action='store', type=int, default = 3, help="Maximum chain length. Default = 3")
+    parser.add_argument('--failure', '-f', action='store', type=int, default = 2, help="Failure type for scenarios. Default = 2 (Vertex only)")
     parser.add_argument('--solvertype', '-st', action='store', type=int, default = 5, help="Solver type. Default = 5 (Benders)")
     parser.add_argument('--formulation', '-form', action='store', type=int, default = 1, help="KEP formulation. Default = 1")
     parser.add_argument('--cplextime', '-cplt', action='store', type=int, default = 7200, help="CPLEX time limit. Default = 7200 s")
     parser.add_argument('--cplexmem', '-cplm', action='store', type=int, default = 7500, help="CPLEX memory limit. Default = 7500 mb")
-    parser.add_argument('--clustermem', '-clusm', action='store', type=int, default = 8192, help="Memory limit in submission file. Default = 8192")
+    parser.add_argument('--clustermem', '-clusm', action='store', type=int, default = 8192, help="Memory limit in submission file. Default = 8192 mb")
+    parser.add_argument('--clustertime', '-clust', action='store', type=str, default = "03:00:00", help="Time limit in submission file. Format: hh:mm:ss. Default = 03:00:00")
     parser.add_argument('--mail', '-m', action='store', type=str, default = "bart.smeulders@ulg.ac", help="Mail adress for cluster settings. Default = bart.smeulders@ulg.ac")
     parser.add_argument('--bin', '-b', action='store', type=str, default = "RobustKEP", help="Name of the binary to launch the tests on. Default = RobustKEP")
     args = parser.parse_args()
     dirPath = os.path.abspath(args.directory)
     nrScenarios = args.nrscenarios
+    chainLength = args.chain
+    cycleLength = args.cycle
+    failureType = args.failure
     solverType = args.solvertype
     formulation = args.formulation
     timeLimitCplex = args.cplextime
     memLimitCplex = args.cplexmem
     memLimitCluster = args.clustermem
+    timeLimitCluster = args.clustertime
     mailCluster = args.mail
     RKEPbin = args.bin
 
@@ -108,9 +125,9 @@ def createConfigFile(instanceName):
     configFileName = "Config-" + instanceName
     configFile = open(configPath + sep + configFileName , "w")
     configFile.truncate(0) # Clean the files if it already exists
-    configFile.write("Cyclelength = 3\n")
-    configFile.write("Chainlength = 3\n")
-    configFile.write("Failure Type = 2\n")
+    configFile.write("Cyclelength = " + str(cycleLength) + "\n")
+    configFile.write("Chainlength = " + str(chainLength) + "\n")
+    configFile.write("Failure Type = " + str(failureType) + "\n")
     configFile.write("Solver = " + str(solverType) + "\n")
     configFile.write("Formulation = " + str(formulation) + "\n")
     configFile.write("# Expected Type = 1\n")
@@ -133,7 +150,7 @@ def createSubmitFile(instanceName, configFileName):
     submitFile.truncate(0)
     submitFile.write("#!/bin/bash\n\n")
     submitFile.write("#SBATCH --job-name=" + str(instanceNumber) + "-" + str(instanceProb) + switchSolver[solverType][0] + switchForm[formulation][0] + "\n")
-    submitFile.write("#SBATCH --time=03:00:00\n")
+    submitFile.write("#SBATCH --time=" + timeLimitCluster + "\n")
     submitFile.write("#\n")
     submitFile.write("#SBATCH --output=Out-" + getOutputName(instanceName) + "\n")
     submitFile.write("#SBATCH --ntasks=1\n")

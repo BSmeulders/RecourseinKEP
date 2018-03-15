@@ -1,6 +1,4 @@
 # Script for generating config file and submit file to test the RKEP solver
-# The instance files you want to generate the submit and config for must all be
-# stored in the same directory.
 
 import sys
 import glob
@@ -9,8 +7,9 @@ import os
 
 # Globale variables to store parameters given to the script to
 # write the config and submit files accordingly
-# Also store a full config file as a string to be able to generate the final
-# files from scratch
+
+# Path separator changes according to OS
+sep = "/"
 
 # Path to the directory containing the instance files to test
 dirPath = ""
@@ -92,8 +91,8 @@ def createSubdir():
         configPath = dirPath + "Config"
         sumbitPath = dirPath + "Submit"
     else:
-        configPath = dirPath + "/Config"
-        submitPath = dirPath + "/Submit"
+        configPath = dirPath + sep + "Config"
+        submitPath = dirPath + sep + "Submit"
     if not os.path.exists(configPath): os.makedirs(configPath)
     if not os.path.exists(submitPath): os.makedirs(submitPath)
 
@@ -107,7 +106,7 @@ def getOutputName(instanceName):
 # directory to store config files exists.
 def createConfigFile(instanceName):
     configFileName = "Config-" + instanceName
-    configFile = open(configPath + "/" + configFileName , "w")
+    configFile = open(configPath + sep + configFileName , "w")
     configFile.truncate(0) # Clean the files if it already exists
     configFile.write("Cyclelength = 3\n")
     configFile.write("Chainlength = 3\n")
@@ -130,7 +129,7 @@ def createConfigFile(instanceName):
 
 def createSubmitFile(instanceName, configFileName):
     instanceProb, instanceNumber = getProbNumber(instanceName)
-    submitFile = open(submitPath + "/Submit-" + instanceName[:-4] + ".sh", "w")
+    submitFile = open(submitPath + sep + "Submit-" + instanceName[:-4] + ".sh", "w")
     submitFile.truncate(0)
     submitFile.write("#!/bin/bash\n\n")
     submitFile.write("#SBATCH --job-name=" + str(instanceNumber) + "-" + str(instanceProb) + switchSolver[solverType][0] + switchForm[formulation][0] + "\n")
@@ -149,10 +148,11 @@ def createSubmitFile(instanceName, configFileName):
     submitFile.close()
 
 if __name__ == '__main__':
+    if os.name == 'nt': sep = "\\"
     parseArguments()
     createSubdir()
     instanceList = glob.glob(dirPath + "/V-*.txt")
     for instance in instanceList:
-        instanceName = instance.split("/")[-1]
+        instanceName = instance.split(sep)[-1]
         configFileName = createConfigFile(instanceName)
         createSubmitFile(instanceName, configFileName)

@@ -247,7 +247,7 @@ vector<vector<vector<int>>> cycle_preproces(directedgraph G, const vector<vector
 	// 3) Whether there is a short enough path back to the "Copy-vertex" from the arcs endvertex.
 
 	// First index is copy, second is vertex. Distance is G.size+1 if there is no path.
-	vector<vector<int>> distance_to_copy_vertex = distance_calc(G, Acopies, cyclelength);
+	vector<vector<int>> distance_to_copy_vertex = distance_calc_to(G, Acopies, cyclelength);
 	
 	// First index is copy, second is position, third is arc.
 	vector<vector<vector<int>>> arc_position_possible(G.nr_pairs - 1);
@@ -310,13 +310,14 @@ vector<vector<vector<int>>> cycle_preproces(directedgraph G, const vector<vector
 	return arc_position_possible;
 }
 
-vector<vector<int>> distance_calc(const directedgraph & G, const vector<vector<directedarc>> & Acopies, int cyclelength)
+vector<vector<int>> distance_calc_to(const directedgraph & G, const vector<vector<directedarc>> & Acopies, int cyclelength)
 {
 	vector<vector<int>> distance(G.nr_pairs); // Leave out last copy (is empty).
 
 	for (int i = 0; i < G.nr_pairs; i++) // We calculate distances for each graph copy. The distance is the distance back to the vertex = graph copy.
 	{
 		distance[i].resize(G.nr_pairs, cyclelength+1);
+		distance[i][i] = 0;
 		// First calculate the distance "1" vertices.
 		for (int k = 0; k < Acopies[i].size(); k++)
 		{

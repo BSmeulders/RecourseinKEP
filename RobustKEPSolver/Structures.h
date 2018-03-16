@@ -75,6 +75,11 @@ struct cycle_variables {
 	vector<vector<vector<int>>> Link_Cyclevar_Arc;
 };
 
+struct cycle_variables_EE {
+	vector<IloNumVarArray> Cycle_Arc_Variable; // First position is graph copy, second refers to the arc.
+	vector<vector<int>> Link_Variable_arc; //
+};
+
 struct chain_variables {
 	vector<IloNumVarArray> Chainvar;
 	vector<vector<int>> Link_Chainvar_Arc;
@@ -104,6 +109,7 @@ struct configuration {
 	int time_limit;
 	int memory_limit;
 	int solver;
+	int bender_type;
 	int calc_expected_type;
 	int failure_type;
 	int scen_gen;

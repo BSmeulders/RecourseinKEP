@@ -44,7 +44,8 @@ vector<chain> Chain_Solution(const directedgraph &G, const vector<IloNumVarArray
 // Variables
 cycle_variables Generate_Cycle_Var(IloEnv &env, directedgraph G, int cyclelength);
 vector<vector<vector<int>>> cycle_preproces(directedgraph G, const vector<vector<directedarc>> & Acopies, int cyclelength);
-vector<vector<int>> distance_calc(const directedgraph & G, const vector<vector<directedarc>> & Acopies,  int cyclelength);
+vector<vector<int>> distance_calc_to(const directedgraph & G, const vector<vector<directedarc>> & Acopies,  int cyclelength);
+vector<vector<int>> distance_calc_from(const directedgraph & G, const vector<vector<directedarc>> & Acopies, int cyclelength);
 chain_variables Generate_Chain_Var(IloEnv &env, directedgraph G, int chainlength);
 vector<vector<int>> chain_preproces(directedgraph G, int chainlength);
 // Constraints
@@ -55,6 +56,12 @@ vector<IloRangeArray> Build_Vertex_Flow_Chain_Constraint(IloEnv & env, IloModel 
 // Misc
 vector<vector<directedarc>> DP_Copy(directedgraph G);
 bool arcsort(directedarc a, directedarc b);
+
+// Extended Edge Formulation Functions
+IloRangeArray Build_Vertex_Constraint_EE(IloEnv & env, IloModel &model, const directedgraph & G, vector<IloNumVarArray> cycle_var, vector<vector<int>> cycle_link);
+vector<IloRangeArray> Build_Vertex_Flow_Constraint_EE(IloEnv & env, IloModel &model, const directedgraph & G, vector<IloNumVarArray> cycle_var, vector<vector<int>> cycle_link);
+IloRangeArray Build_Symmetry_Cycle_Length_Constraint_EE(IloEnv & env, IloModel &model, const directedgraph & G, vector<IloNumVarArray> cycle_var, vector<vector<int>> cycle_link, int cyclelength);
+vector<IloRangeArray> Build_Test_Constraint_EE(IloEnv & env, IloModel model, const directedgraph & G, const IloNumVarArray & Testvar, const vector<vector<IloNumVarArray>>& Cyclevar, const vector<vector<vector<int>>>& cycle_link, int nr_scen);
 
 // Functions for Subset Recourse
 pre_test_result Subset_MIP(const vector<cycle_arcs> & subsets,const directedgraph & G, const configuration & config, double remaining_time, const time_t & start_time);

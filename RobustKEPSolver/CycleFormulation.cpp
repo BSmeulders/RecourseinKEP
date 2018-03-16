@@ -8,7 +8,7 @@ vector<cycle_arcs> Find_Cycles(directedgraph G, const configuration & config)
 	vector<cycle_arcs> cycles;
 
 	vector<vector<directedarc>> copies = DP_Copy(G);
-	vector<vector<int>> distances = distance_calc(G, copies, config.cyclelength);
+	vector<vector<int>> distances = distance_calc_to(G, copies, config.cyclelength);
 	vector<int> first_arc = Find_First_arc(G);
 	
 	for (int i = 0; i < G.nr_pairs; i++) // We loop through all vertices as possible starting points of the cycles.

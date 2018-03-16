@@ -1,0 +1,16 @@
+Cyclelength = 3
+Chainlength = 3
+Failure Type = 2
+Solver = 5
+Formulation = 1
+# Expected Type = 1
+Max Test = 53
+Scenarios = 500
+# Subset Recourse Size = 1
+Input Type = 2
+Input File = V-50-0.8-Said-4.txt
+Testvar Output = V-B-Dickerson-50-0.8-3-1-500-Said-4.txt
+# Solution Input File = V-B-Dickerson-50-0.8-3-1-500-Said-4.txt
+Time Limit = 7200
+Memory Limit = 7500
+# Limited World = 1

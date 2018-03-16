@@ -418,6 +418,7 @@ pre_test_result Bender_EE(directedgraph G, configuration &config)
 	return results;
 }
 
+
 cycle_variables Generate_Cycle_Var_LP(IloEnv &env, const directedgraph & G, int cyclelength, int nr_scen)
 {
 	// Note that we consistently work with nr_pairs - 1. Since the copy corresponding to the last pair is empty (no arcs), it is useless to include it.

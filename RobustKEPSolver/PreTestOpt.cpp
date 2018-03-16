@@ -10,7 +10,7 @@ using namespace std;
 
 void pre_test_main(configuration & config, directedgraph G)
 {
-	
+
 	pre_test_result results = Pre_Test(G, config.cyclelength, config.chainlength, config.max_test, config.nr_scenarios, config.time_limit, config.scen_gen, config.failure_type, config);
 	Output_Pre_Test(results, config);
 }
@@ -30,7 +30,7 @@ pre_test_result Pre_Test(directedgraph G, int chainlength, int cyclelength, int 
 		{
 			Scenarios = Generate_Scenarios(G, nr_scen); cout << "Basic Scen Generator" << endl;
 		}
-			
+
 	}
 	else if (failure_type == 2)
 	{
@@ -40,10 +40,10 @@ pre_test_result Pre_Test(directedgraph G, int chainlength, int cyclelength, int 
 	cout << "Scenarios Generated" << endl;
 	cout << Scenarios.size();
 
-	
+
 	time_t start_time;
 	time(&start_time);
-	IloEnv env; 
+	IloEnv env;
 	IloModel model(env);
 	cout << "Generating Variables" << endl;
 	vector<vector<vector<IloNumVarArray>>> Cyclevar(nr_scen); // First position is scenario, second index is the Graph Copy, third the position in the Graph, fourth the individual arcs.
@@ -132,7 +132,7 @@ pre_test_result Pre_Test(directedgraph G, int chainlength, int cyclelength, int 
 		}
 	}
 
-	
+
 	return results;
 }
 
@@ -140,8 +140,8 @@ vector<directedgraph> Generate_Scenarios(const directedgraph & G, int nr_scen)
 {
 	//ofstream output;
 	//output.open("Scenarios.txt");
-	
-	srand(time(NULL));
+
+	//srand(time(NULL));
 
 	vector<directedgraph> Scenarios;
 	for (int i = 0; i < nr_scen; i++)
@@ -165,7 +165,7 @@ vector<directedgraph> Generate_Scenarios(const directedgraph & G, int nr_scen)
 vector<directedgraph> Generate_Scenarios_Tight(const directedgraph & G, int nr_scen)
 {
 	ofstream output;
-	srand(time(NULL));
+	//srand(time(NULL));
 	vector<directedgraph> Scenarios(nr_scen);
 	// Get the number of successes for each arc  and the number of scenarios.
 	vector<int> succes_per_arc(G.arcs.size());
@@ -200,7 +200,7 @@ vector<directedgraph> Generate_Scenarios_Tight(const directedgraph & G, int nr_s
 vector<directedgraph> Generate_Scenarios_Vertex_Tight(const directedgraph & G, int nr_scen)
 {
 	ofstream output;
-	srand(time(NULL));
+	//srand(time(NULL));
 	vector<directedgraph> Scenarios(nr_scen);
 	// Get the number of successes for each vertex and the number of scenarios.
 	vector<int> succes_per_vertex(G.size);
@@ -344,7 +344,7 @@ IloNumVarArray Generate_Testvar(IloEnv & env, directedgraph G)
 		const char* vname = varname.c_str();
 		Testvar.add(IloNumVar(env, 0, 1, ILOINT, vname));
 	}
-	
+
 	return Testvar;
 }
 
@@ -384,7 +384,7 @@ vector<IloRangeArray> Build_Test_Constraint(IloEnv & env, IloModel model, direct
 		}
 		model.add(Test_Constraints[scen]);
 	}
-	
+
 	return Test_Constraints;
 }
 

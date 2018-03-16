@@ -4,11 +4,12 @@
 #include "stdafx.h"
 #include "Structures.h"
 #include "Functions.h"
+#include <functional>
 
 int main(int argc, char  * argv[])
 {
 	int error = 0;
-	
+
 	configuration config = Readconfig(argv[1], &error);
 	directedgraph G = graph_generation(config);
 	if (config.LW == 0)
@@ -52,7 +53,7 @@ void Choose_Solver(configuration & config, directedgraph & G)
 		cout << "Expected Transplants" << endl;
 		Calc_Expected_Transplants(config);
 	}
-		
+
 }
 
 configuration Readconfig(char configname[], int * error)
@@ -106,6 +107,10 @@ configuration Readconfig(char configname[], int * error)
 			cout << "Required values not included in config file" << endl; cout << "Press enter to continue" << endl; cin.get(); *error = 1;
 		}
 	}
+	// Set seed according to filename before returning.
+	hash<string> hash_fn;
+	unsigned int seed = hash_fn(config.inputfile);
+	srand(seed);
+	cout << "Seed set to " << seed << endl;
 	return config;
 }
-

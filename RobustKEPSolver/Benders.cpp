@@ -5,7 +5,6 @@
 pre_test_result Bender_Cycle(directedgraph G, configuration & config);
 pre_test_result Bender_HPIEF(directedgraph G, configuration &config);
 pre_test_result Bender_EE(directedgraph G, configuration & config);
-IloNumVarArray Generate_Cycle_Var_Cycle_Form_Linear(IloEnv & env, const directedgraph & Scenario_Graph, const configuration & config, int i);
 IloRangeArray Generate_Vertex_Use_Constraint(IloEnv & env, const directedgraph & G, const vector<cycle_arcs> & cycles, IloNumVarArray & cyclevar, int scen);
 IloRangeArray Generate_Test_Cycle_Constraint(IloEnv & env, IloNumVarArray & cyclevar, IloNumVarArray & testvar, const vector<cycle_arcs> & cycles, int scen);
 
@@ -127,15 +126,6 @@ pre_test_result Bender_Cycle(directedgraph G, configuration & config)
 		}
 	}
 	return results;
-}
-
-IloNumVarArray Generate_Cycle_Var_Cycle_Form_Linear(IloEnv & env, const directedgraph & Graph, const configuration & config, int scen_number)
-{
-	
-
-
-
-	return IloNumVarArray();
 }
 
 IloRangeArray Generate_Vertex_Use_Constraint(IloEnv & env, const directedgraph & G, const vector<cycle_arcs>& cycles, IloNumVarArray& cyclevar, int scen)

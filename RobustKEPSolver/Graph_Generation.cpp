@@ -15,7 +15,7 @@ directedgraph graph_generation(configuration & config)
 		G = simplegraph(config);
 	else if (config.input_data == 4)
 		G = saidman(config);
-	
+
 	G.first_vertex_arc = Find_First_arc(G);
 
 	return G;
@@ -36,7 +36,7 @@ directedgraph simplegraph(configuration & config)
 
 	output << "Nr_Pairs = " << G.nr_pairs << endl;
 	output << "Nr_NDD = " << G.nr_ndd << endl;
-	
+
 	for (int i = 0; i < size; i++)
 	{
 		for (int j = 0; j < G.nr_pairs; j++)
@@ -52,7 +52,7 @@ directedgraph simplegraph(configuration & config)
 			}
 		}
 	}
-	
+
 	return G;
 }
 
@@ -63,17 +63,17 @@ directedgraph saidman(configuration & config)
 	G.nr_pairs = config.nr_pairs;
 	G.nr_ndd = config.nr_ndd;
 	G.size = G.nr_ndd + G.nr_pairs;
-	
-	
-	srand(time(NULL));
+
+
+	//srand(time(NULL));
 
 	vector<patient_donor_pair> pairs(G.nr_pairs);
 	vector<int> NDD(G.nr_ndd);
-	// Loop to determine blood types and PRA_level of pairs. 
+	// Loop to determine blood types and PRA_level of pairs.
 	for (int i = 0; i < G.nr_pairs; i++)
 	{
 		bool flag = 1;
-		while (flag == 1) // We generate a donor and patient. If they are compatible, the flag stays at 1. If they are compatible, 
+		while (flag == 1) // We generate a donor and patient. If they are compatible, the flag stays at 1. If they are compatible,
 			// they would not be added to the KEP pool, so we generate a new patient-donor pair to take their place.
 			// If at any point we find they are not compatible, the flag is set to 0.
 		{
@@ -104,14 +104,14 @@ directedgraph saidman(configuration & config)
 				pairs[i].PRA_level = 1; // Medium PRA
 			else
 				pairs[i].PRA_level = 2;	// High PRA
-			
+
 			// We first check whether the blood types are incompatible. If they are, we set the flag to 0 and break the loop.
-			
+
 			if (pairs[i].donor_bloodtype != 0 && pairs[i].patient_bloodtype != 3 && pairs[i].donor_bloodtype != pairs[i].patient_bloodtype)
 			{
-				flag = 0; 
+				flag = 0;
 				break;
-				
+
 			}
 			{
 				// If there is a compatible blood type, there is still the possibility of positive cross-match.
@@ -144,11 +144,11 @@ directedgraph saidman(configuration & config)
 							flag = 0; break;
 						}
 					}
-				}*/			
+				}*/
 			}
 		}
 		cout << pairs[i].donor_bloodtype << "\t" << pairs[i].patient_bloodtype << "\t" << pairs[i].PRA_level << endl;
-	} 
+	}
 	// Loop to determine blood type of NDD.
 	for (int i = 0; i < G.nr_ndd; i++)
 	{

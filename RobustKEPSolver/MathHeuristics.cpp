@@ -14,9 +14,9 @@ void Arc_Heuristic(configuration & config, const directedgraph & G_original)
 	{
 		scenarios = Generate_Scenarios_Tight(G, config.nr_scenarios);
 	}
-	
+
 	// Vector which saves how often each arc is used in solutions to the scenarios.
-	vector<int> arc_use(G.arcs.size()); 
+	vector<int> arc_use(G.arcs.size());
 	// Vector which saves the relation between arcs in the scenarios to the Graph G. Arcnumbers must be changed in the scenarios to avoid things breaking in HPIEF.
 	vector<vector<int>> arcnumbers(config.nr_scenarios);
 
@@ -29,7 +29,7 @@ void Arc_Heuristic(configuration & config, const directedgraph & G_original)
 			arcnumbers[i][j] = scenarios[i].arcs[j].arcnumber;
 			scenarios[i].arcs[j].arcnumber = j;
 		}
-		
+
 		matching_result new_result = Hybrid_PIEF(scenarios[i], config.chainlength, config.cyclelength, config);
 
 		// Save which arcs were used in this scenario.
@@ -49,7 +49,7 @@ void Arc_Heuristic(configuration & config, const directedgraph & G_original)
 	// Set-up the IP to choose arcs based on how often they are used over the different scenarios.
 	vector<bool> arc_tested;
 	pre_test_result results = Arc_Use_IP(config, G, arc_use, arc_tested);
-	
+
 	vector<int> to_delete = Identify_Arcs_To_Delete(G, arc_use, arc_tested, config.nr_scenarios);
 
 	while (to_delete.size() > 0)
@@ -83,7 +83,7 @@ void Arc_Heuristic(configuration & config, const directedgraph & G_original)
 		pre_test_result results = Arc_Use_IP(config, G, arc_use, arc_tested);
 		to_delete = Identify_Arcs_To_Delete(G, arc_use, arc_tested, config.nr_scenarios);
 	}
-	
+
 	Output_Pre_Test(results, config);
 	system("PAUSE");
 }
@@ -164,8 +164,8 @@ void Cycle_Heuristic(configuration & config, directedgraph G)
 					}
 						cycles_used[new_result.cycles[j].arcs.size() - 2][new_result.cycles[j].vertices[0]].push_back(new_result.cycles[j]);
 				}
-					
-				
+
+
 			}
 		}
 		for (int i = 0; i < cycles_used.size(); i++) // Illustrative Output
@@ -199,12 +199,12 @@ void Cycle_Heuristic(configuration & config, directedgraph G)
 			delete_from_scen(scenarios, arcnumbers, to_delete);
 		}
 	}
-	
+
 }
 
 pre_test_result Cycle_Use_IP(configuration & config, const directedgraph & G, const vector<int>& arc_use, const vector<vector<vector<cycle_arcs>>> cycles_used, vector<bool> & arc_tested)
 {
-	IloEnv env; 
+	IloEnv env;
 	IloModel Model(env);
 
 	int total_cycles = 0;
@@ -212,7 +212,7 @@ pre_test_result Cycle_Use_IP(configuration & config, const directedgraph & G, co
 	{
 		for (int j = 0; j < cycles_used[i].size(); j++)
 		{
-			total_cycles += cycles_used[i][j].size(); 
+			total_cycles += cycles_used[i][j].size();
 		}
 	}
 
@@ -284,7 +284,7 @@ pre_test_result Cycle_Use_IP(configuration & config, const directedgraph & G, co
 		{
 			arc_tested[i] = 0;
 		}
-			
+
 	}
 
 	return results;
@@ -293,14 +293,14 @@ pre_test_result Cycle_Use_IP(configuration & config, const directedgraph & G, co
 pre_test_result Arc_Use_IP(configuration & config, const directedgraph & original_G, const vector<int>& arc_use, vector<bool> & arc_tested)
 {
 	directedgraph G = original_G;
-	
+
 	IloEnv env;
 	IloModel Arc_Use_IP(env);
 	// Create all variables (pre-processing can be implemented here)
 	IloNumVarArray Test_Var = Generate_Test_Var_Arc_Use_IP(env, G);
 
 	vector<vector<IloNumVarArray>> Cyclevar; // First index is the Graph Copy, Second the position in the cycle, Third the individual arcs.
-	vector<vector<vector<int>>> Cyclevar_arc_link; // A vector to link the variables to the original arc. Cyclevar_arc_link[i][j][k] = l, means that this variable corresponds to the l-th arc in the original arc list. 
+	vector<vector<vector<int>>> Cyclevar_arc_link; // A vector to link the variables to the original arc. Cyclevar_arc_link[i][j][k] = l, means that this variable corresponds to the l-th arc in the original arc list.
 	{
 		cycle_variables cvars = Generate_Cycle_Var_Arc_Use_IP(env, G, config.cyclelength, config.nr_scenarios);
 		Cyclevar = cvars.Cyclevariable;
@@ -332,8 +332,8 @@ pre_test_result Arc_Use_IP(configuration & config, const directedgraph & origina
 			obj.setLinearCoef(Chainvar[i][j], G.arcs[Chainvar_arc_link[i][j]].weight);
 	}
 	Arc_Use_IP.add(obj);
-	
-	// Build the model, it is based on the Dickerson et al. (2016) HPIEF, but instead, the upper bound for an arc-variable is how often it is used in the scenarios. 
+
+	// Build the model, it is based on the Dickerson et al. (2016) HPIEF, but instead, the upper bound for an arc-variable is how often it is used in the scenarios.
 	IloRangeArray Arc_Constraint = Arc_Constraints_Arc_Use_IP(env, Arc_Use_IP, G, Test_Var, Cyclevar, Cyclevar_arc_link, Chainvar, Chainvar_arc_link, arc_use);
 
 	// Max number of tests
@@ -491,7 +491,7 @@ IloRangeArray Arc_Constraints_Arc_Use_IP(IloEnv & env, IloModel &model, const di
 			Arc_Constraint[chain_link[i][j]].setLinearCoef(chain_var[i][j], 1);
 		}
 	}
-	
+
 	model.add(Arc_Constraint);
 	return Arc_Constraint;
 }
@@ -499,7 +499,7 @@ IloRangeArray Arc_Constraints_Arc_Use_IP(IloEnv & env, IloModel &model, const di
 vector<int> Identify_Arcs_To_Delete(const directedgraph & G, vector<int> arc_use, vector<bool> testvar_vector, int nr_scen)
 {
 	vector<int> to_delete;
-	vector<bool> adjacent_arc_deleted(G.size,0); 
+	vector<bool> adjacent_arc_deleted(G.size,0);
 	cout << endl;
 	int startvert = 0; int arc = 0;
 	for (int vertex = 0; vertex < G.size; vertex++)
@@ -544,7 +544,7 @@ vector<int> Identify_Arcs_To_Delete2(const directedgraph & G, vector<int> arc_us
 		if (free_outdegree[vertex] > max_outdegree)
 			max_outdegree = free_outdegree[vertex];
 	}
-	
+
 	int startvert = 0; arc = 0;
 	for (int vertex = 0; vertex < G.size; vertex++)
 	{
@@ -632,7 +632,7 @@ void delete_from_scen(vector<directedgraph>& scenarios, vector<vector<int>> & ar
 						break;
 				}
 			}
-			
+
 			arcnumbers[scen][i] = arcnumbers[scen][i] - j;
 		}
 		// Renumber the arcnumbers in the arcs.
@@ -661,7 +661,7 @@ matching_result Hybrid_PIEF_Heur(directedgraph G, int chainlength, int cycleleng
 	IloEnv env;
 	IloModel HPIEF(env);
 	vector<vector<IloNumVarArray>> Cyclevar; // First index is the Graph Copy, Second the position in the cycle, Third the individual arcs.
-	vector<vector<vector<int>>> Cyclevar_arc_link; // A vector to link the variables to the original arc. Cyclevar_arc_link[i][j][k] = l, means that this variable corresponds to the l-th arc in the original arc list. 
+	vector<vector<vector<int>>> Cyclevar_arc_link; // A vector to link the variables to the original arc. Cyclevar_arc_link[i][j][k] = l, means that this variable corresponds to the l-th arc in the original arc list.
 	{
 		cycle_variables cvars = Generate_Cycle_Var(env, G, cyclelength);
 		Cyclevar = cvars.Cyclevariable;
@@ -764,7 +764,7 @@ matching_result Hybrid_PIEF_Heur(directedgraph G, int chainlength, int cycleleng
 vector<directedgraph> Generate_Scenarios_Vertex_Tight_Heur(const directedgraph & G, int nr_scen)
 {
 	ofstream output;
-	srand(time(NULL));
+	// srand(time(NULL));
 	vector<directedgraph> Scenarios(nr_scen);
 	// Get the number of successes for each vertex and the number of scenarios.
 	vector<int> succes_per_vertex(G.size);

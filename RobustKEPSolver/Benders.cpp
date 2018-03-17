@@ -202,7 +202,6 @@ pre_test_result Bender_HPIEF(directedgraph G, configuration &config)
 	cout << "Scenarios Generated" << endl;
 	cout << Scenarios.size();
 
-
 	time_t start_time;
 	time(&start_time);
 	IloEnv env;

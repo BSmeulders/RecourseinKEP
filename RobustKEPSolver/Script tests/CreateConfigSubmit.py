@@ -187,13 +187,15 @@ if __name__ == '__main__':
     if os.name == 'nt': sep = "\\"
     parseArguments()
     createSubdir()
-    instanceList = glob.glob(dirPath + "/V-*.txt")
     if solverType == 5:
+        instanceList = glob.glob(dirPath + "/V-*.txt")
         for instance in instanceList:
             instanceName = instance.split(sep)[-1]
             configFileName = createConfigFile(instanceName)
             createSubmitFile(instanceName, configFileName)
     if solverType == 6:
+        instanceList = glob.glob(dirPath + "/V-B*.txt")
+        if not instanceList: instanceList = glob.glob(dirPath + "/V-E*.txt")
         for solutionFile in instanceList:
             solutionFileName = solutionFile.split(sep)[-1]
             instanceFileName = identifyInstance(solutionFileName)

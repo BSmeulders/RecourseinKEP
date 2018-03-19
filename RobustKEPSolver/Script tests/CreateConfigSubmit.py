@@ -39,6 +39,8 @@ nrCpuCluster = 4
 
 testType = 1
 
+postEx = 0
+
 # Max number of tests for each instance. This is fixed and is gathered from the subset recourse solution files.
 maxTests = {'V-SR-50-0.6-4-0-50-Said-9.txt': '64', 'V-SR-50-0.6-4-0-50-Said-7.txt': '43', 'V-SR-50-0.6-4-0-50-Said-2.txt': '65', 'V-SR-50-0.2-4-0-50-Said-2.txt': '72', 'V-SR-50-0.6-4-0-50-Said-4.txt': '55', 'V-SR-50-0.6-4-0-50-Said-3.txt': '47', 'V-SR-50-0.8-4-0-50-Said-4.txt': '53', 'V-SR-50-0.2-4-0-50-Said-10.txt': '43', 'V-SR-50-0.2-4-0-50-Said-1.txt': '59', 'V-SR-50-0.4-4-0-50-Said-9.txt': '61', 'V-SR-50-0.8-4-0-50-Said-1.txt': '35', 'V-SR-50-0.2-4-0-50-Said-4.txt': '55', 'V-SR-50-0.6-4-0-50-Said-1.txt': '57', 'V-SR-50-0.6-4-0-50-Said-6.txt': '46', 'V-SR-50-0.8-4-0-50-Said-8.txt': '88', 'V-SR-50-0.4-4-0-50-Said-8.txt': '62', 'V-SR-50-0.6-4-0-50-Said-5.txt': '75', 'V-SR-50-0.8-4-0-50-Said-3.txt': '69', 'V-SR-50-0.4-4-0-50-Said-7.txt': '80', 'V-SR-50-0.2-4-0-50-Said-8.txt': '60', 'V-SR-50-0.4-4-0-50-Said-4.txt': '78', 'V-SR-50-0.4-4-0-50-Said-10.txt': '58', 'V-SR-50-0.2-4-0-50-Said-6.txt': '64', 'V-SR-50-0.2-4-0-50-Said-9.txt': '66', 'V-SR-50-0.6-4-0-50-Said-8.txt': '76', 'V-SR-50-0.2-4-0-50-Said-5.txt': '38', 'V-SR-50-0.8-4-0-50-Said-2.txt': '65', 'V-SR-50-0.2-4-0-50-Said-3.txt': '70', 'V-SR-50-0.4-4-0-50-Said-1.txt': '50', 'V-SR-50-0.4-4-0-50-Said-5.txt': '74', 'V-SR-50-0.8-4-0-50-Said-5.txt': '59', 'V-SR-50-0.4-4-0-50-Said-3.txt': '28', 'V-SR-50-0.8-4-0-50-Said-7.txt': '48', 'V-SR-50-0.6-4-0-50-Said-10.txt': '75', 'V-SR-50-0.4-4-0-50-Said-6.txt': '60', 'V-SR-50-0.2-4-0-50-Said-7.txt': '54', 'V-SR-50-0.4-4-0-50-Said-2.txt': '48', 'V-SR-50-0.8-4-0-50-Said-6.txt': '71', 'V-SR-50-0.8-4-0-50-Said-9.txt': '51', 'V-SR-50-0.8-4-0-50-Said-10.txt': '70'}
 
@@ -60,7 +62,7 @@ RKEPbin = "RobustKEP"
 # Parsing arguments for config and submits files
 def parseArguments():
     global dirPath, nrScenarios, solverType, formulation, timeLimitCplex, memLimitCplex, memLimitCluster, mailCluster, RKEPbin, timeLimitCluster
-    global cycleLength, chainLength, failureType, nrCpuCluster, testType
+    global cycleLength, chainLength, failureType, nrCpuCluster, testType, postEx
     parser = argparse.ArgumentParser(description='Generates configuration and submission file for RKEP tests')
     parser.add_argument('--directory', '-dir', action='store', type=str, required=True, help="[REQUIRED] path (relative or absolute) to directory containing tests instances.")
     parser.add_argument('--nrscenarios', '-nrs', action='store', type=int, default = 100, help="Number of scenarios. Default = 100")
@@ -75,7 +77,8 @@ def parseArguments():
     parser.add_argument('--clustertime', '-clust', action='store', type=str, default = "03:00:00", help="Time limit in submission file. Format: hh:mm:ss. Default = 03:00:00")
     parser.add_argument('--mail', '-m', action='store', type=str, default = "bart.smeulders@ulg.ac", help="Mail adress for cluster settings. Default = bart.smeulders@ulg.ac")
     parser.add_argument('--bin', '-b', action='store', type=str, default = "RobustKEP", help="Name of the binary to launch the tests on. Default = RobustKEP")
-    parser.add_argument('--testtype', '-ttype', action='store', type=int, default = 1, help="Type of post-ex evaluation 1 = exact, 2 = monte-carlo. Default = 1")
+    parser.add_argument('--bin', '-b', action='store', type=str, default = "RobustKEP", help="Name of the binary to launch the tests on. Default = RobustKEP")
+    parser.add_argument('--postex', '-pe', action='store', type=int, default = 0, help="Replace solver by post-ex evaluation. Default = 0")
     args = parser.parse_args()
     dirPath = os.path.abspath(args.directory)
     nrScenarios = args.nrscenarios
@@ -91,7 +94,8 @@ def parseArguments():
     mailCluster = args.mail
     RKEPbin = args.bin
     testType = args.testtype
-    if solverType == 6: nrCpuCluster = 1 # If exact expected transplant computation only one CPU is needed
+    postEx = args.postex
+    if postEx == 1: nrCpuCluster = 1 # If exact expected transplant computation only one CPU is needed
 
 
 # Return the instance number and probability associated with an instance file "V-50...-Said-10.txt"
@@ -170,7 +174,7 @@ def createSubmitFile(instanceName, configFileName):
     submitFile.write("#SBATCH --time=" + timeLimitCluster + "\n")
     submitFile.write("#\n")
     prefix = "Out-"
-    if solverType == 6: prefix = "ExPost-"
+    if postEx == 1: prefix = "ExPost-"
     submitFile.write("#SBATCH --output=" + prefix + getOutputName(instanceName) + "\n")
     submitFile.write("#SBATCH --ntasks=1\n")
     submitFile.write("#SBATCH --cpus-per-task=" + str(nrCpuCluster) + "\n")
@@ -193,7 +197,7 @@ if __name__ == '__main__':
             instanceName = instance.split(sep)[-1]
             configFileName = createConfigFile(instanceName)
             createSubmitFile(instanceName, configFileName)
-    if solverType == 6:
+    if postEx == 1:
         instanceList = glob.glob(dirPath + "/V-B*.txt")
         if not instanceList: instanceList = glob.glob(dirPath + "/V-E*.txt")
         for solutionFile in instanceList:

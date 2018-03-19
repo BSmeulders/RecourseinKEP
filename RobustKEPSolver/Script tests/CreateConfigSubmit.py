@@ -77,7 +77,7 @@ def parseArguments():
     parser.add_argument('--clustertime', '-clust', action='store', type=str, default = "03:00:00", help="Time limit in submission file. Format: hh:mm:ss. Default = 03:00:00")
     parser.add_argument('--mail', '-m', action='store', type=str, default = "bart.smeulders@ulg.ac", help="Mail adress for cluster settings. Default = bart.smeulders@ulg.ac")
     parser.add_argument('--bin', '-b', action='store', type=str, default = "RobustKEP", help="Name of the binary to launch the tests on. Default = RobustKEP")
-    parser.add_argument('--bin', '-b', action='store', type=str, default = "RobustKEP", help="Name of the binary to launch the tests on. Default = RobustKEP")
+    parser.add_argument('--testtype', '-ttype', action='store', type=int, default = 1, help="Test type for ex post evaluation: 1 = exact, 2 = monte-carlo. Default = 1")
     parser.add_argument('--postex', '-pe', action='store', type=int, default = 0, help="Replace solver by post-ex evaluation. Default = 0")
     args = parser.parse_args()
     dirPath = os.path.abspath(args.directory)

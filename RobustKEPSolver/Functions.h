@@ -2,6 +2,10 @@
 
 #include "stdafx.h"
 #include "Structures.h"
+#include <algorithm>
+#include <tuple>
+#include <list>
+
 
 // Input Function
 configuration Readconfig(char configname[], int * error);
@@ -110,6 +114,19 @@ IloRangeArray Build_Vertex_Constraint_PICEF(IloEnv & env, IloModel &model, direc
 // Testing Functions
 float Calc_Expected_Transplants(configuration & config);
 vector<cycle_arcs> Split_SCC(const directedgraph & Tested_G);
+vector<list<int>> G_Adjacency(const directedgraph & tested_G, const vector<bool> & fixed_to_zero);
+vector<cycle_arcs> Split_SCC_Tarjan(const directedgraph & tested_G, const vector<bool> & fixed_to_zero);
+vector<tuple<int,int,float>> Find_Articulation_Points(const directedgraph & G);
+void Find_SCC_Root(const directedgraph & tested_G, const vector<list<int>> & adj, int v, int & index, vector<int> & vertices_index,
+				   deque<int> & Q, vector<int> & low_link, vector<bool> & on_stack, vector<cycle_arcs> & SCC, vector<vector<int>> & SCC_arcs);
+void Subset_Set_Exact_Weights_Vertex(vector<cycle_arcs>& subsets, const directedgraph & G, const configuration & config, vector<bool> & fixed);
+float Subset_Set_Exact_Weights_Vertex_Root(const directedgraph & G, const configuration & config, vector<bool> & fixed);
+float Subset_Set_Exact_Weights_Vertex_Recursion(const configuration & config, IloEnv & env,
+	const directedgraph & G, IloCplex & CPLEX, vector<int> vertex_use, IloRangeArray & vertex_cons, vector<bool> fixed, float Solution,
+	bool succes_fix, int depth, deque<int> & suc_fail, list<tuple<int, int>> branching_order, vector<bool> & fixed_to_zero);
+directedgraph Subset_Graph_Exact(const cycle_arcs & subset, const directedgraph & G, vector<bool> & new_fixed, vector<bool> & fixed);
+bool Ap_compare(tuple<int, int, float> const & t1, tuple<int, int, float> const & t2);
+
 
 // Limited World Comparisons (There is a limited number of scenarios.)
 void Limited_World(configuration & config, const directedgraph & G);

@@ -39,7 +39,7 @@ memLimitCplex = 7500
 maxTests = {'V-SR-50-0.6-4-0-50-Said-9.txt': '64', 'V-SR-50-0.6-4-0-50-Said-7.txt': '43', 'V-SR-50-0.6-4-0-50-Said-2.txt': '65', 'V-SR-50-0.2-4-0-50-Said-2.txt': '72', 'V-SR-50-0.6-4-0-50-Said-4.txt': '55', 'V-SR-50-0.6-4-0-50-Said-3.txt': '47', 'V-SR-50-0.8-4-0-50-Said-4.txt': '53', 'V-SR-50-0.2-4-0-50-Said-10.txt': '43', 'V-SR-50-0.2-4-0-50-Said-1.txt': '59', 'V-SR-50-0.4-4-0-50-Said-9.txt': '61', 'V-SR-50-0.8-4-0-50-Said-1.txt': '35', 'V-SR-50-0.2-4-0-50-Said-4.txt': '55', 'V-SR-50-0.6-4-0-50-Said-1.txt': '57', 'V-SR-50-0.6-4-0-50-Said-6.txt': '46', 'V-SR-50-0.8-4-0-50-Said-8.txt': '88', 'V-SR-50-0.4-4-0-50-Said-8.txt': '62', 'V-SR-50-0.6-4-0-50-Said-5.txt': '75', 'V-SR-50-0.8-4-0-50-Said-3.txt': '69', 'V-SR-50-0.4-4-0-50-Said-7.txt': '80', 'V-SR-50-0.2-4-0-50-Said-8.txt': '60', 'V-SR-50-0.4-4-0-50-Said-4.txt': '78', 'V-SR-50-0.4-4-0-50-Said-10.txt': '58', 'V-SR-50-0.2-4-0-50-Said-6.txt': '64', 'V-SR-50-0.2-4-0-50-Said-9.txt': '66', 'V-SR-50-0.6-4-0-50-Said-8.txt': '76', 'V-SR-50-0.2-4-0-50-Said-5.txt': '38', 'V-SR-50-0.8-4-0-50-Said-2.txt': '65', 'V-SR-50-0.2-4-0-50-Said-3.txt': '70', 'V-SR-50-0.4-4-0-50-Said-1.txt': '50', 'V-SR-50-0.4-4-0-50-Said-5.txt': '74', 'V-SR-50-0.8-4-0-50-Said-5.txt': '59', 'V-SR-50-0.4-4-0-50-Said-3.txt': '28', 'V-SR-50-0.8-4-0-50-Said-7.txt': '48', 'V-SR-50-0.6-4-0-50-Said-10.txt': '75', 'V-SR-50-0.4-4-0-50-Said-6.txt': '60', 'V-SR-50-0.2-4-0-50-Said-7.txt': '54', 'V-SR-50-0.4-4-0-50-Said-2.txt': '48', 'V-SR-50-0.8-4-0-50-Said-6.txt': '71', 'V-SR-50-0.8-4-0-50-Said-9.txt': '51', 'V-SR-50-0.8-4-0-50-Said-10.txt': '70'}
 
 # Switch number used to design formulation and solver type to name the files correctly
-switchForm = {1: 'Dickerson', 2: 'Cycle', 3: 'EE'}
+switchForm = {1: 'Dickerson', 2: 'EE', 3: 'Cycle'}
 switchSolver = {5: 'B', 6: 'LP'}
 
 # Path of the directory containing the generated files. Can not be set until
@@ -122,7 +122,7 @@ def getOutputName(instanceName):
 # Creates the config file to launch instanceName. Assumes that the
 # directory to store config files exists.
 def createConfigFile(instanceName):
-    configFileName = "Config-" + instanceName
+    configFileName = "Config-" + instanceName[:-4] + "-" + switchSolver[solverType][0] + "-" + switchForm[formulation][0] + "-" + str(nrScenarios) + ".txt"
     configFile = open(configPath + sep + configFileName , "w")
     configFile.truncate(0) # Clean the files if it already exists
     configFile.write("Cyclelength = " + str(cycleLength) + "\n")
@@ -146,7 +146,8 @@ def createConfigFile(instanceName):
 
 def createSubmitFile(instanceName, configFileName):
     instanceProb, instanceNumber = getProbNumber(instanceName)
-    submitFile = open(submitPath + sep + "Submit-" + instanceName[:-4] + ".sh", "w")
+    submitFileName = "Submit-" + instanceName[:-4] + "-" + switchSolver[solverType][0] + "-" + switchForm[formulation][0] + "-" + str(nrScenarios)  + ".sh"
+    submitFile = open(submitPath + sep + submitFileName, "w")
     submitFile.truncate(0)
     submitFile.write("#!/bin/bash\n\n")
     submitFile.write("#SBATCH --job-name=" + str(instanceNumber) + "-" + str(instanceProb) + switchSolver[solverType][0] + switchForm[formulation][0] + "\n")

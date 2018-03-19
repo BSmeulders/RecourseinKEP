@@ -1,0 +1,178 @@
+Seed set to 4031830949
+Reading graph from file
+Choosing Solver: Deterministic KEP
+Vertices Fail
+Scenarios Generated
+500Generating Variables
+Cyclevar Generated
+Chainvar Generated
+Variables Generated
+Generating objective for scenario 0
+Generating objective for scenario 50
+Generating objective for scenario 100
+Generating objective for scenario 150
+Generating objective for scenario 200
+Generating objective for scenario 250
+Generating objective for scenario 300
+Generating objective for scenario 350
+Generating objective for scenario 400
+Generating objective for scenario 450
+Objective Created
+Generating constraints for scenario 0
+Generating constraints for scenario 100
+Generating constraints for scenario 200
+Generating constraints for scenario 300
+Generating constraints for scenario 400
+CPXPARAM_TimeLimit                               7200
+CPXPARAM_WorkMem                                 7500
+CPXPARAM_Benders_Strategy                        3
+Found incumbent of value 0.000000 after 0.01 sec. (9.43 ticks)
+Tried aggregator 2 times.
+MIP Presolve eliminated 1609655 rows and 239 columns.
+MIP Presolve added 4329 rows and 0 columns.
+Aggregator did 3093 substitutions.
+Reduced MIP has 10082 rows, 3255 columns, and 26989 nonzeros.
+Reduced MIP has 398 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.47 sec. (608.89 ticks)
+Tried aggregator 1 time.
+MIP Presolve eliminated 4329 rows and 0 columns.
+MIP Presolve added 4329 rows and 0 columns.
+Reduced MIP has 10082 rows, 3255 columns, and 26989 nonzeros.
+Reduced MIP has 398 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.01 sec. (8.28 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+      0     0     7047.0000                      Benders: 254      210         
+      0     0     2598.0000                      Benders: 222      729         
+      0     0     1835.3112                      Benders: 188      953         
+      0     0     1568.4826                      Benders: 145     1541         
+      0     0     1447.8228                      Benders: 146     2201         
+      0     0     1348.9844                      Benders: 145     3161         
+      0     0     1289.6315                       Benders: 48     4020         
+      0     0     1269.0044                      Benders: 101     4860         
+      0     0     1246.5630                       Benders: 14     5523         
+      0     0     1240.1990                       Benders: 21     5990         
+      0     0     1236.1548                       Benders: 13     6515         
+      0     0     1235.8593                        Benders: 4     6770         
+      0     0     1235.8144                       Benders: 84     6805         
+      0     0     1183.6098                      Benders: 114     8203         
+      0     0     1163.5313                       Benders: 69     9225         
+      0     0     1146.4491                       Benders: 48    10358         
+      0     0     1141.9837                       Benders: 20    11163         
+      0     0     1138.5762                       Benders: 12    11825         
+      0     0     1136.9826                       Benders: 75    12489         
+      0     0     1136.4353                        Benders: 5    12927         
+      0     0     1135.6096                        Benders: 2    13273         
+      0     0     1135.5098                        Benders: 1    13485         
+      0     0     1135.2978                        Benders: 5    13771         
+      0     0     1135.0181                       Benders: 28    14129         
+      0     0     1126.1609                       Benders: 55    15185         
+      0     0     1123.7784                       Benders: 24    15988         
+      0     0     1122.5235                       Benders: 16    16508         
+      0     0     1121.8667                        Benders: 2    16946         
+      0     0     1121.8095                        Benders: 6    17223         
+      0     0     1121.4568                        Benders: 2    17729         
+      0     0     1121.1807                        Benders: 2    18102         
+      0     0     1121.1099                        Benders: 1    18362         
+      0     0     1121.1064                        Benders: 1    18383         
+      0     0     1120.8873                       Benders: 37    18775         
+      0     0     1120.8852                        Benders: 1    18805         
+      0     0     1120.8842                       Benders: 30    18807         
+      0     0     1119.7201                       Benders: 11    19414         
+      0     0     1119.3645                        Benders: 3    19792         
+      0     0     1119.1664                        Benders: 9    20168         
+      0     0     1118.9316                       Benders: 48    20581         
+      0     0     1118.5289                       Benders: 15    21232         
+      0     0     1118.4097                        Benders: 1    21671         
+      0     0     1118.4097                       Benders: 12    21672         
+      0     0     1118.2432                        Benders: 7    22021         
+      0     0     1118.1250                        Benders: 1    22223         
+      0     0     1118.1250                        Benders: 1    22224         
+      0     0     1118.1250                        Benders: 2    22226         
+      0     0     1118.1250                        Benders: 1    22229         
+      0     0     1118.1250                        Benders: 1    22230         
+Tried aggregator 1 time.
+MIP Presolve eliminated 110 rows and 0 columns.
+MIP Presolve modified 25 coefficients.
+Reduced MIP has 2557 rows, 898 columns, and 23070 nonzeros.
+Reduced MIP has 528 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.01 sec. (11.27 ticks)
+Probing time = 0.00 sec. (0.64 ticks)
+Tried aggregator 1 time.
+Reduced MIP has 2557 rows, 898 columns, and 23070 nonzeros.
+Reduced MIP has 528 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.01 sec. (5.30 ticks)
+Probing time = 0.00 sec. (0.64 ticks)
+Clique table members: 263.
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: deterministic, using up to 16 threads.
+Root relaxation solution time = 0.47 sec. (231.65 ticks)
+*     0+    0                          984.0000     1118.1250            13.63%
+      0     0     1118.1250   155      984.0000     1118.1250    25562   13.63%
+      0     0     1116.9200   173      984.0000       Cuts: 6    25793   13.51%
+      0     0     1116.8210   200      984.0000      Cuts: 15    25909   13.50%
+      0     0     1116.8111   179      984.0000      Cuts: 14    25940   13.50%
+      0     0     1116.7810   182      984.0000    Benders: 4    26016   13.49%
+      0     0     1116.7740   183      984.0000       Cuts: 6    26071   13.49%
+*     0+    0                         1084.0000     1116.7740             3.02%
+*     0+    0                         1086.0000     1116.7740             2.83%
+
+Repeating presolve.
+Tried aggregator 1 time.
+Reduced MIP has 2557 rows, 898 columns, and 23070 nonzeros.
+Reduced MIP has 528 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.01 sec. (5.50 ticks)
+Probing time = 0.00 sec. (0.67 ticks)
+Tried aggregator 1 time.
+Reduced MIP has 2557 rows, 898 columns, and 23070 nonzeros.
+Reduced MIP has 528 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.01 sec. (5.49 ticks)
+Represolve time = 0.04 sec. (21.64 ticks)
+Probing time = 0.00 sec. (0.67 ticks)
+Clique table members: 263.
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: deterministic, using up to 16 threads.
+Root relaxation solution time = 0.35 sec. (270.96 ticks)
+*     0+    0                         1086.0000     1116.7740             2.83%
+      0     0     1116.7740   184     1086.0000     1116.7740    51755    2.83%
+      0     0     1116.7735   177     1086.0000    MIRcuts: 1    51765    2.83%
+      0     2     1116.7735   171     1086.0000     1116.7735    51765    2.83%
+Elapsed time = 10.62 sec. (7751.17 ticks, tree = 0.01 MB, solutions = 2)
+      6     8     1110.5000    98     1086.0000     1116.7668    54466    2.83%
+     12     7     1115.0000   126     1086.0000     1116.7668    54066    2.83%
+*    22+    3                         1088.0000     1116.7668             2.64%
+     27    24     1101.9048    82     1088.0000     1116.7668    68319    2.64%
+*    38+    9                         1090.0000     1116.7668             2.46%
+     59    42     1105.3936   118     1090.0000     1116.1779    80381    2.40%
+*    86+   33                         1092.0000     1116.1779             2.21%
+    107    68     1098.2857    87     1092.0000     1116.1779    95358    2.21%
+    178   149     1095.0000     7     1092.0000     1116.1779   134063    2.21%
+    268   175     1099.0000     2     1092.0000     1116.1779   141105    2.21%
+*   279+   90                         1095.0000     1116.1779             1.93%
+    339   216     1103.8117   123     1095.0000     1116.1779   167092    1.93%
+    414   236     1095.8583   135     1095.0000     1116.1779   175995    1.93%
+*   665+  339                         1097.0000     1112.5875             1.42%
+    887   360     1098.6200   143     1097.0000     1110.9074   250633    1.27%
+Elapsed time = 31.24 sec. (10929.83 ticks, tree = 4.72 MB, solutions = 13)
+   1414   582        cutoff           1097.0000     1104.6348   330488    0.70%
+*  1516   564      integral     0     1101.0000     1104.6348   326305    0.33%
+
+Benders cuts applied:  164
+Flow cuts applied:  3
+Mixed integer rounding cuts applied:  13
+Lift and project cuts applied:  2
+Gomory fractional cuts applied:  2
+
+Root node processing (before b&c):
+  Real time             =    8.96 sec. (7733.06 ticks)
+Parallel b&c, 16 threads:
+  Real time             =   34.22 sec. (4822.78 ticks)
+  Sync time (average)   =   14.96 sec.
+  Wait time (average)   =    0.19 sec.
+                          ------------
+Total (root+branch&cut) =   43.18 sec. (12555.84 ticks)
+2.202

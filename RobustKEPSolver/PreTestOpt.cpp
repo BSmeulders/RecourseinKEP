@@ -6,6 +6,8 @@ void Pre_Test_Float(directedgraph G, int chainlength, int cyclelength, int max_t
 cycle_variables Generate_Cycle_Var_Float(IloEnv &env, const directedgraph & G, int cyclelength, int nr_scen);
 IloNumVarArray Generate_Testvar_Float(IloEnv & env, directedgraph G);
 
+pre_test_result Pre_Test_EE(directedgraph G, configuration & config);
+
 using namespace std;
 
 void pre_test_main(configuration & config, directedgraph G)
@@ -228,9 +230,7 @@ vector<directedgraph> Generate_Scenarios_Vertex_Tight(const directedgraph & G, i
 				succes_per_vertex[j]--;
 				vertex_succes[j] = 1;
 			}
-			cout << vertex_succes[j] << ",";
 		}
-		cout << endl;
 		for (int j = 0; j < G.arcs.size(); j++)
 		{
 			if (vertex_succes[G.arcs[j].startvertex] == 1 && vertex_succes[G.arcs[j].endvertex] == 1)
@@ -587,4 +587,156 @@ void Pre_Test_Float(directedgraph G, int chainlength, int cyclelength, int max_t
 	output << "Computation Time = " << results.computation_time << endl;
 	output << "Nr Test = " << max_tests << endl;
 	cin.get();
+}
+
+pre_test_result Pre_Test_EE(directedgraph G, configuration &config)
+{
+	directedgraph Tested_Graph = G;
+	vector<directedgraph> Scenarios;
+	if (config.failure_type == 1)
+	{
+		cout << "Arcs Fail" << endl;
+		if (config.scen_gen == 1)
+		{
+			Scenarios = Generate_Scenarios_Tight(G, config.nr_scenarios); cout << "Tight Scen Generator" << endl;
+		}
+		else
+		{
+			Scenarios = Generate_Scenarios(G, config.nr_scenarios); cout << "Basic Scen Generator" << endl;
+		}
+
+	}
+	else if (config.failure_type == 2)
+	{
+		cout << "Vertices Fail" << endl;
+		Scenarios = Generate_Scenarios_Vertex_Tight(G, config.nr_scenarios);
+	}
+	cout << "Scenarios Generated" << endl;
+
+	time_t start_time;
+	time(&start_time);
+	IloEnv env;
+	IloModel model(env);
+	cout << "Generating Variables" << endl;
+	vector<vector<IloNumVarArray>> Cyclevar(config.nr_scenarios); // First position is scenario, second index is the Graph Copy, third the individual arcs.
+	vector<vector<vector<int>>> Cyclevar_arc_link(config.nr_scenarios); // A vector to link the variables to the original arc. Cyclevar_arc_link[i][j][k] = m, means that this variable corresponds to the m-th arc in the original arc list.
+	for (int i = 0; i < config.nr_scenarios; i++)
+	{
+		cycle_variables_EE cvars = Generate_Cycle_Var_EE(env, Scenarios[i], config.cyclelength, i);
+		Cyclevar[i] = cvars.Cycle_Arc_Variable;
+		Cyclevar_arc_link[i] = cvars.Link_Variable_arc;
+	}
+	cout << "Cyclevar Generated" << endl;
+	// Include chainvar if needed
+	cout << "Variables Generated" << endl;
+	// Create the Objective Function
+	IloObjective obj = IloMaximize(env);
+	for (int scen = 0; scen < config.nr_scenarios; scen++)
+	{
+		for (int copy = 0; copy < G.nr_pairs - 1; copy++)
+		{
+			if (Cyclevar[scen][copy].getSize() > 0)
+			{
+				IloNumArray weights(env, Cyclevar[scen][copy].getSize());
+				for (int arc = 0; arc < Cyclevar[scen][copy].getSize(); arc++)
+				{
+					weights[arc] = G.arcs[Cyclevar_arc_link[scen][copy][arc]].weight;
+				}
+				obj.setLinearCoefs(Cyclevar[scen][copy], weights);
+			}
+		}
+	}
+	model.add(obj);
+	cout << "Objective Created" << endl;
+
+	// Create Constraints per scenario.
+	vector<IloRangeArray> vertex_inflow_cons_EE(config.nr_scenarios);
+	vector<vector<IloRangeArray>> vertex_flow_cons_EE(config.nr_scenarios);
+	vector<IloRangeArray> sym_length_con(config.nr_scenarios);
+
+	for (int scen = 0; scen < config.nr_scenarios; scen++)
+	{
+		if (scen % 100 == 0)
+			cout << "Generating constraints for scenario " << scen << endl;
+		// Max one incoming arc per vertex.
+		vertex_inflow_cons_EE[scen] = Build_Vertex_Constraint_EE(env, model, G, Cyclevar[scen], Cyclevar_arc_link[scen]);
+
+		// If there is an arc arriving in position i, there should be an outgoing arc in position i+1 in the same copy (excluding the origin vertex in that copy).
+		vertex_flow_cons_EE[scen] = Build_Vertex_Flow_Constraint_EE(env, model, G, Cyclevar[scen], Cyclevar_arc_link[scen]);
+
+		// Combined symmetry and cycle length constraint.
+		sym_length_con[scen] = Build_Symmetry_Cycle_Length_Constraint_EE(env, model, G, Cyclevar[scen], Cyclevar_arc_link[scen], config.cyclelength);
+	}
+
+	//Create Testing Variables and Constraints.
+	IloNumVarArray Testvar = Generate_Testvar(env, G);
+	vector<IloRangeArray> test_constraint = Build_Test_Constraint_EE(env, model, G, Testvar, Cyclevar, Cyclevar_arc_link, config.nr_scenarios);
+	IloRange Max_Test_Constraint = Build_Max_Test_Constraint(env, model, Testvar, config.max_test);
+
+	IloCplex CPLEX(model);
+	CPLEX.setParam(IloCplex::TiLim, config.time_limit);
+	CPLEX.setParam(IloCplex::TreLim, config.memory_limit);
+	if (config.solver == 5)
+		CPLEX.setParam(IloCplex::Param::Benders::Strategy, IloCplex::BendersFull);
+	CPLEX.solve();
+
+	pre_test_result results;
+	results.objective_value = CPLEX.getObjValue() / config.nr_scenarios;
+	cout << results.objective_value << endl;
+
+	time_t current_time;
+	time(&current_time);
+	results.computation_time = difftime(current_time, start_time);
+
+	for (int i = 0; i < G.arcs.size(); i++)
+	{
+		if (CPLEX.getValue(Testvar[i]) > 0.99)
+		{
+			results.tested_arcs.push_back(G.arcs[i]);
+		}
+	}
+	return results;
+}
+
+cycle_variables_EE Generate_Cycle_Var_EE(IloEnv &env, directedgraph G, int cyclelength, int scenario_number)
+{
+	// Note that we consistently work with nr_pairs - 1, since the copy corresonding to the last pair can not contain any cycles.
+	cycle_variables_EE c;
+	c.Cycle_Arc_Variable.resize(G.nr_pairs - 1);
+	c.Link_Variable_arc.resize(G.nr_pairs - 1);
+	// Pre-Processing
+	vector<vector<directedarc>> Acopies = DP_Copy(G);
+	vector<vector<int>> copy_arc_possible = cycle_preproces_EE(G, Acopies, cyclelength); // First index is graph copy, second is arc.
+	vector<int> arc_per_copy(G.nr_pairs - 1, 0);
+	for (int i = 0; i < copy_arc_possible.size(); i++)
+	{
+		for (int j = 0; j < copy_arc_possible[i].size(); j++)
+		{
+			if (copy_arc_possible[i][j] == 1)
+				arc_per_copy[i]++;
+		}
+	}
+
+	// Create all variables
+	for (int i = 0; i < G.nr_pairs - 1; i++)
+	{
+		c.Link_Variable_arc[i].resize(arc_per_copy[i]);
+		c.Cycle_Arc_Variable[i] = IloNumVarArray(env, arc_per_copy[i]);
+		int vars_added = 0;
+		for (int arc = 0; arc < Acopies[i].size(); arc++)
+		{
+			if (copy_arc_possible[i][arc] == 1)
+			{
+				ostringstream convert;
+				convert << "x(" << Acopies[i][arc].startvertex << "," << Acopies[i][arc].endvertex << "," << scenario_number << ")";
+				string varname = convert.str();
+				const char* vname = varname.c_str();
+				c.Cycle_Arc_Variable[i][vars_added] = IloNumVar(env, 0, 1, ILOINT, vname);
+				c.Link_Variable_arc[i][vars_added] = Acopies[i][arc].arcnumber;
+				vars_added++;
+			}
+
+		}
+	}
+	return c;
 }

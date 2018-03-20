@@ -12,7 +12,7 @@ cycle_variables Generate_Cycle_Var_LP(IloEnv &env, const directedgraph & G, int 
 chain_variables Generate_Chain_Var_LP(IloEnv & env, directedgraph G, int chainlength, int nr_scen);
 
 cycle_variables_EE Generate_Cycle_Var_EE_LP(IloEnv &env, directedgraph G, int cyclelength, int scenario_number);
-vector<vector<int>> cycle_preproces_EE(directedgraph G, const vector<vector<directedarc>> & Acopies, int cyclelength);
+
 
 vector<cycle_arcs> Find_Cycles_Bender(directedgraph G, const configuration & config);
 
@@ -107,7 +107,8 @@ pre_test_result Bender_Cycle(directedgraph G, configuration & config)
 	IloCplex CPLEX(model);
 	CPLEX.setParam(IloCplex::TiLim, config.time_limit);
 	CPLEX.setParam(IloCplex::TreLim, config.memory_limit);
-	CPLEX.setParam(IloCplex::Param::Benders::Strategy, IloCplex::BendersFull);
+	if(config.solver == 5)
+		CPLEX.setParam(IloCplex::Param::Benders::Strategy, IloCplex::BendersFull);
 	CPLEX.solve();
 
 	pre_test_result results;
@@ -286,7 +287,8 @@ pre_test_result Bender_HPIEF(directedgraph G, configuration &config)
 	IloCplex CPLEX(model);
 	CPLEX.setParam(IloCplex::TiLim, config.time_limit);
 	CPLEX.setParam(IloCplex::WorkMem, config.memory_limit);
-	CPLEX.setParam(IloCplex::Param::Benders::Strategy, IloCplex::BendersFull);
+	if(config.solver == 5)
+		CPLEX.setParam(IloCplex::Param::Benders::Strategy, IloCplex::BendersFull);
 	CPLEX.solve();
 
 	pre_test_result results;
@@ -396,7 +398,8 @@ pre_test_result Bender_EE(directedgraph G, configuration &config)
 	IloCplex CPLEX(model);
 	CPLEX.setParam(IloCplex::TiLim, config.time_limit);
 	CPLEX.setParam(IloCplex::TreLim, config.memory_limit);
-	CPLEX.setParam(IloCplex::Param::Benders::Strategy, IloCplex::BendersFull);
+	if(config.solver == 5)
+		CPLEX.setParam(IloCplex::Param::Benders::Strategy, IloCplex::BendersFull);
 	CPLEX.solve();
 
 	pre_test_result results;

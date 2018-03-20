@@ -66,6 +66,8 @@ IloRangeArray Build_Vertex_Constraint_EE(IloEnv & env, IloModel &model, const di
 vector<IloRangeArray> Build_Vertex_Flow_Constraint_EE(IloEnv & env, IloModel &model, const directedgraph & G, vector<IloNumVarArray> cycle_var, vector<vector<int>> cycle_link);
 IloRangeArray Build_Symmetry_Cycle_Length_Constraint_EE(IloEnv & env, IloModel &model, const directedgraph & G, vector<IloNumVarArray> cycle_var, vector<vector<int>> cycle_link, int cyclelength);
 vector<IloRangeArray> Build_Test_Constraint_EE(IloEnv & env, IloModel model, const directedgraph & G, const IloNumVarArray & Testvar, const vector<vector<IloNumVarArray>>& Cyclevar, const vector<vector<vector<int>>>& cycle_link, int nr_scen);
+vector<vector<int>> cycle_preproces_EE(directedgraph G, const vector<vector<directedarc>> & Acopies, int cyclelength);
+cycle_variables_EE Generate_Cycle_Var_EE(IloEnv &env, directedgraph G, int cyclelength, int scenario_number);
 
 // Functions for Subset Recourse
 pre_test_result Subset_MIP(const vector<cycle_arcs> & subsets,const directedgraph & G, const configuration & config, double remaining_time, const time_t & start_time);

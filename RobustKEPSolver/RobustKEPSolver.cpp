@@ -45,7 +45,12 @@ void Choose_Solver(configuration & config, directedgraph & G)
 	}
 	else if (config.solver == 5)
 	{
-		cout << "Deterministic KEP" << endl;
+		cout << "Bender" << endl;
+		benders_main(config, G);
+	}
+	else if (config.solver == 7)
+	{
+		cout << "Scenario LP Relaxation" << endl;
 		benders_main(config, G);
 	}
 	else if (config.solver == 6)

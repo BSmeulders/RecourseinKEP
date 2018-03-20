@@ -167,7 +167,7 @@ vector<directedgraph> Generate_Scenarios_Tight(const directedgraph & G, int nr_s
 	ofstream output;
 	//srand(time(NULL));
 	vector<directedgraph> Scenarios(nr_scen);
-	// Get the number of successes for each arc  and the number of scenarios.
+	// Get the number of successes for each arc and the number of scenarios.
 	vector<int> succes_per_arc(G.arcs.size());
 	for (int i = 0; i < G.arcs.size(); i++)
 	{
@@ -175,7 +175,7 @@ vector<directedgraph> Generate_Scenarios_Tight(const directedgraph & G, int nr_s
 		float natural;
 		float remainder = modf(expected_succes, & natural);
 		// Round it to an integer probabilistically.
-		if (rand() % 1000 > remainder * 1000)
+		if (rand() % 1000 < remainder * 1000)
 			remainder = 1;
 		else
 			remainder = 0;
@@ -210,19 +210,7 @@ vector<directedgraph> Generate_Scenarios_Vertex_Tight(const directedgraph & G, i
 		float natural;
 		float remainder = modf(expected_succes, &natural);
 		// Round it to an integer probabilistically.
-		if (rand() % 1000 > remainder * 1000)
-			remainder = 1;
-		else
-			remainder = 0;
-		succes_per_vertex[i] = natural + remainder;
-	}
-	for (int i = G.nr_pairs; i < G.size; i++)
-	{
-		float expected_succes = nr_scen*(1 - G.ndds[i].failprob);
-		float natural;
-		float remainder = modf(expected_succes, &natural);
-		// Round it to an integer probabilistically.
-		if (rand() % 1000 > remainder * 1000)
+		if (rand() % 1000 < remainder * 1000)
 			remainder = 1;
 		else
 			remainder = 0;
@@ -240,7 +228,9 @@ vector<directedgraph> Generate_Scenarios_Vertex_Tight(const directedgraph & G, i
 				succes_per_vertex[j]--;
 				vertex_succes[j] = 1;
 			}
+			cout << vertex_succes[j] << ",";
 		}
+		cout << endl;
 		for (int j = 0; j < G.arcs.size(); j++)
 		{
 			if (vertex_succes[G.arcs[j].startvertex] == 1 && vertex_succes[G.arcs[j].endvertex] == 1)
@@ -249,7 +239,7 @@ vector<directedgraph> Generate_Scenarios_Vertex_Tight(const directedgraph & G, i
 			}
 		}
 	}
-
+	cin.get();
 	return Scenarios;
 }
 

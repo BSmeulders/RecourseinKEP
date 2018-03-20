@@ -42,11 +42,11 @@ testType = 1
 postEx = 0
 
 # Max number of tests for each instance. This is fixed and is gathered from the subset recourse solution files.
-maxTests = {'V-SR-50-0.6-4-0-50-Said-9.txt': '64', 'V-SR-50-0.6-4-0-50-Said-7.txt': '43', 'V-SR-50-0.6-4-0-50-Said-2.txt': '65', 'V-SR-50-0.2-4-0-50-Said-2.txt': '72', 'V-SR-50-0.6-4-0-50-Said-4.txt': '55', 'V-SR-50-0.6-4-0-50-Said-3.txt': '47', 'V-SR-50-0.8-4-0-50-Said-4.txt': '53', 'V-SR-50-0.2-4-0-50-Said-10.txt': '43', 'V-SR-50-0.2-4-0-50-Said-1.txt': '59', 'V-SR-50-0.4-4-0-50-Said-9.txt': '61', 'V-SR-50-0.8-4-0-50-Said-1.txt': '35', 'V-SR-50-0.2-4-0-50-Said-4.txt': '55', 'V-SR-50-0.6-4-0-50-Said-1.txt': '57', 'V-SR-50-0.6-4-0-50-Said-6.txt': '46', 'V-SR-50-0.8-4-0-50-Said-8.txt': '88', 'V-SR-50-0.4-4-0-50-Said-8.txt': '62', 'V-SR-50-0.6-4-0-50-Said-5.txt': '75', 'V-SR-50-0.8-4-0-50-Said-3.txt': '69', 'V-SR-50-0.4-4-0-50-Said-7.txt': '80', 'V-SR-50-0.2-4-0-50-Said-8.txt': '60', 'V-SR-50-0.4-4-0-50-Said-4.txt': '78', 'V-SR-50-0.4-4-0-50-Said-10.txt': '58', 'V-SR-50-0.2-4-0-50-Said-6.txt': '64', 'V-SR-50-0.2-4-0-50-Said-9.txt': '66', 'V-SR-50-0.6-4-0-50-Said-8.txt': '76', 'V-SR-50-0.2-4-0-50-Said-5.txt': '38', 'V-SR-50-0.8-4-0-50-Said-2.txt': '65', 'V-SR-50-0.2-4-0-50-Said-3.txt': '70', 'V-SR-50-0.4-4-0-50-Said-1.txt': '50', 'V-SR-50-0.4-4-0-50-Said-5.txt': '74', 'V-SR-50-0.8-4-0-50-Said-5.txt': '59', 'V-SR-50-0.4-4-0-50-Said-3.txt': '28', 'V-SR-50-0.8-4-0-50-Said-7.txt': '48', 'V-SR-50-0.6-4-0-50-Said-10.txt': '75', 'V-SR-50-0.4-4-0-50-Said-6.txt': '60', 'V-SR-50-0.2-4-0-50-Said-7.txt': '54', 'V-SR-50-0.4-4-0-50-Said-2.txt': '48', 'V-SR-50-0.8-4-0-50-Said-6.txt': '71', 'V-SR-50-0.8-4-0-50-Said-9.txt': '51', 'V-SR-50-0.8-4-0-50-Said-10.txt': '70'}
+maxTests = {'V-SR-50-0.4-3-1-Said-2.txt': '44', 'V-SR-50-0.2-3-1-Said-2.txt': '65', 'V-SR-50-0.6-3-1-Said-1.txt': '49', 'V-SR-50-0.6-3-1-Said-2.txt': '67', 'V-SR-50-0.8-3-1-Said-7.txt': '48', 'V-SR-50-0.4-3-1-Said-9.txt': '59', 'V-SR-50-0.2-3-1-Said-3.txt': '62', 'V-SR-50-0.2-3-1-Said-8.txt': '52', 'V-SR-50-0.8-3-1-Said-2.txt': '66', 'V-SR-50-0.4-3-1-Said-4.txt': '77', 'V-SR-50-0.2-3-1-Said-1.txt': '47', 'V-SR-50-0.4-3-1-Said-3.txt': '27', 'V-SR-50-0.4-3-1-Said-7.txt': '72', 'V-SR-50-0.6-3-1-Said-5.txt': '74', 'V-SR-50-0.8-3-1-Said-4.txt': '55', 'V-SR-50-0.8-3-1-Said-1.txt': '37', 'V-SR-50-0.2-3-1-Said-9.txt': '63', 'V-SR-50-0.6-3-1-Said-10.txt': '73', 'V-SR-50-0.2-3-1-Said-4.txt': '52', 'V-SR-50-0.2-3-1-Said-6.txt': '64', 'V-SR-50-0.8-3-1-Said-3.txt': '71', 'V-SR-50-0.6-3-1-Said-9.txt': '61', 'V-SR-50-0.6-3-1-Said-6.txt': '49', 'V-SR-50-0.2-3-1-Said-5.txt': '38', 'V-SR-50-0.2-3-1-Said-7.txt': '51', 'V-SR-50-0.8-3-1-Said-10.txt': '67', 'V-SR-50-0.4-3-1-Said-1.txt': '53', 'V-SR-50-0.2-3-1-Said-10.txt': '32', 'V-SR-50-0.8-3-1-Said-5.txt': '55', 'V-SR-50-0.6-3-1-Said-7.txt': '46', 'V-SR-50-0.6-3-1-Said-4.txt': '50', 'V-SR-50-0.8-3-1-Said-6.txt': '64', 'V-SR-50-0.6-3-1-Said-3.txt': '47', 'V-SR-50-0.4-3-1-Said-8.txt': '56', 'V-SR-50-0.4-3-1-Said-10.txt': '47', 'V-SR-50-0.6-3-1-Said-8.txt': '80', 'V-SR-50-0.4-3-1-Said-5.txt': '74', 'V-SR-50-0.4-3-1-Said-6.txt': '56', 'V-SR-50-0.8-3-1-Said-8.txt': '85', 'V-SR-50-0.8-3-1-Said-9.txt': '54'}
 
 # Switch number used to design formulation and solver type to name the files correctly
 switchForm = {1: 'Dickerson', 2: 'EE', 3: 'Cycle'}
-switchSolver = {5: 'B', 6: 'LP'}
+switchSolver = {2: 'IP', 5: 'B', 6: 'LP'}
 
 # Path of the directory containing the generated files. Can not be set until
 # the instance files path has been retrieved
@@ -109,7 +109,7 @@ def getProbNumber(instanceName):
 # maximum number of tests. It uses the instance number Said-x and the probability of success
 def nrMaxTests(instanceName):
     instanceProb, instanceNumber = getProbNumber(instanceName)
-    SRName = "V-SR-50-" + instanceProb + "-4-0-50-Said-" + instanceNumber + ".txt"
+    SRName = "V-SR-50-" + instanceProb + "-3-1-Said-" + instanceNumber + ".txt"
     return maxTests[SRName]
 
 # Creates the subdirectories to store config and submit files
@@ -191,7 +191,7 @@ if __name__ == '__main__':
     if os.name == 'nt': sep = "\\"
     parseArguments()
     createSubdir()
-    if solverType == 5:
+    if (solverType == 5 or solverType == 2) and postEx == 0:
         instanceList = glob.glob(dirPath + "/V-*.txt")
         for instance in instanceList:
             instanceName = instance.split(sep)[-1]

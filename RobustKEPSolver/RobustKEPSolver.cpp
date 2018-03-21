@@ -30,7 +30,7 @@ void Choose_Solver(configuration & config, directedgraph & G)
 	}
 	else if (config.solver == 2)
 	{
-		cout << "Pre-Test" << endl;
+		cout << "Pre-Test with IP Formulation" << endl;
 		pre_test_main(config, G);
 	}
 	else if (config.solver == 3)
@@ -45,13 +45,13 @@ void Choose_Solver(configuration & config, directedgraph & G)
 	}
 	else if (config.solver == 5)
 	{
-		cout << "Bender" << endl;
-		benders_main(config, G);
+		cout << "Pre-Test with LP relaxation for scenarios - Benders decomposition used" << endl;
+		pre_test_main(config, G);
 	}
 	else if (config.solver == 7)
 	{
-		cout << "Scenario LP Relaxation" << endl;
-		benders_main(config, G);
+		cout << "Pre-Test with LP relaxation for scenarios" << endl;
+		pre_test_main(config, G);
 	}
 	else if (config.solver == 6)
 	{

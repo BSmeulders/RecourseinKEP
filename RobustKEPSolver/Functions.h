@@ -19,11 +19,12 @@ directedgraph readgraph2(configuration & config, string filename);
 
 // Solvers for various Models
 void Choose_Solver(configuration & config, directedgraph & G);
-void pre_test_main(configuration & config, directedgraph G);
-void benders_main(configuration & config, directedgraph G);
+void pre_test_main(const configuration & config, directedgraph G);
 void Subset_Recourse(configuration & config, directedgraph G);
 void Deterministic_KEP(configuration & config, directedgraph G);
-pre_test_result Pre_Test(directedgraph G, int chainlength, int cyclelength, int max_tests, int nr_scen, int time_limit, int scen_gen, int failure_type, const configuration & config); // Pre_test outputs a new graph, using only the arcs chosen in the optimization.
+pre_test_result HPIEF_Scen(directedgraph G, const configuration & config); // Pre_test outputs a new graph, using only the arcs chosen in the optimization.
+pre_test_result EE_Scen(directedgraph G, const configuration & config);
+pre_test_result Cycle_Scen(directedgraph G, const configuration & config);
 matching_result Hybrid_PIEF(directedgraph G, int chainlength, int cyclength, configuration & config);
 matching_result PICEF(directedgraph G, configuration & config);
 matching_result Cycle_Formulation_Linear(directedgraph G, configuration & config);
@@ -34,8 +35,8 @@ matching_result Cycle_Formulation_Integer(directedgraph G, configuration & confi
 vector<directedgraph> Generate_Scenarios(const directedgraph &G, int nr_scen);
 vector<directedgraph> Generate_Scenarios_Tight(const directedgraph & G, int nr_scen);
 vector<directedgraph> Generate_Scenarios_Vertex_Tight(const directedgraph & G, int nr_scen);
-cycle_variables Generate_Cycle_Var(IloEnv &env, const directedgraph & G, int cyclelength, int nr_scen);
-chain_variables Generate_Chain_Var(IloEnv &env, directedgraph G, int chainlength, int nr_scen);
+cycle_variables HPIEF_Scen_Generate_Cycle_Var(IloEnv &env, const directedgraph & G, const configuration & config, int nr_scen);
+chain_variables HPIEF_Scen_Generate_Chain_Var(IloEnv &env, directedgraph G, const configuration & config, int nr_scen);
 IloNumVarArray Generate_Testvar(IloEnv &env, directedgraph G);
 vector<IloRangeArray> Build_Test_Constraint(IloEnv &env, IloModel model, directedgraph G, const IloNumVarArray & Testvar, const vector<vector<vector<IloNumVarArray>>> & Cyclevar, const vector<vector<vector<vector<int>>>> & cycle_link, const vector<vector<IloNumVarArray>> & Chainvar, const vector<vector<vector<int>>> & Chainvar_arc_link, int nr_scen);
 IloRange Build_Max_Test_Constraint(IloEnv & env, IloModel model, const IloNumVarArray & Testvar, int max_test);
@@ -135,7 +136,7 @@ void Limited_World(configuration & config, const directedgraph & G);
 void Subset_Set_Weights_LW(vector<cycle_arcs> & subsets, const vector<directedgraph> & Scenarios, const configuration & config);
 pre_test_result Subset_MIP_Silent(const vector<cycle_arcs> & subsets, const directedgraph & G, const configuration & config);
 directedgraph Subset_Graph_LW(const cycle_arcs & subset, const directedgraph & scenario);
-pre_test_result Pre_Test_Scen(directedgraph G, int chainlength, int cyclelength, int max_tests, int nr_scen, int time_limit, int scen_gen, int failure_type, vector<directedgraph> scenarios);
+pre_test_result Pre_Test_Scen(directedgraph G, const configuration & config, vector<directedgraph> scenarios);
 void Output_LW(const pre_test_result & results_SR, const pre_test_result & results_PT, const configuration & config);
 
 // Unlimited Cycle Robust Approach

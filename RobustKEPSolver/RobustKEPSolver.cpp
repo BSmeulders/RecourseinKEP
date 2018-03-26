@@ -35,27 +35,28 @@ void Choose_Solver(configuration & config, directedgraph & G)
 	}
 	else if (config.solver == 3)
 	{
-		cout << "Unlimited Cycles" << endl;
-		UnlimitedCycle_Main(config, G);
+		cout << "Pre-Test with LP relaxation for scenarios" << endl;
+		pre_test_main(config, G);
 	}
 	else if (config.solver == 4)
-	{
-		cout << "Matheuristics" << endl;
-		Cycle_Heuristic(config, G);
-	}
-	else if (config.solver == 5)
 	{
 		cout << "Pre-Test with LP relaxation for scenarios - Benders decomposition used" << endl;
 		pre_test_main(config, G);
 	}
+	else if (config.solver == 5)
+	{
+		cout << "Unlimited Cycles" << endl;
+		UnlimitedCycle_Main(config, G);
+	}
 	else if (config.solver == 7)
 	{
-		cout << "Pre-Test with LP relaxation for scenarios" << endl;
-		pre_test_main(config, G);
+		cout << "Matheuristics" << endl;
+		Cycle_Heuristic(config, G);
 	}
+	
 	else if (config.solver == 6)
 	{
-		cout << "Expected Transplants" << endl;
+		cout << "Evaluation of solutions" << endl;
 		Calc_Expected_Transplants(config);
 	}
 
@@ -87,7 +88,7 @@ configuration Readconfig(char configname[], int * error)
 		("Time Limit", po::value<int>(&config.time_limit)->default_value(86400), "")
 		("Memory Limit", po::value<int>(&config.memory_limit)->default_value(8192),"")
 		("Solver", po::value<int>(&config.solver)->required(), "")
-		("Formulation", po::value<int>(&config.bender_type)->default_value(0),"")
+		("Formulation", po::value<int>(&config.bender_type)->default_value(1),"")
 		("Expected Type", po::value<int>(&config.calc_expected_type)->default_value(1), "")
 		("Failure Type", po::value<int>(&config.failure_type)->default_value(1), "")
 		("Scenario Generator", po::value<int>(&config.scen_gen)->default_value(1), "")

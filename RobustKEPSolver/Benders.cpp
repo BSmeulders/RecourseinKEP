@@ -51,7 +51,7 @@ pre_test_result Cycle_Scen(directedgraph G, const configuration & config)
 	{
 		// Note! Problem with Find_Cycles.
 		cycles[i] = Find_Cycles_Bender(Scenarios[i], config);
-		if(config.solver == 5 || config.solver == 7)
+		if(config.solver == 3 || config.solver == 4)
 			cyclevar[i] = IloNumVarArray(env, cycles[i].size(), 0, 1, ILOFLOAT);
 		else
 			cyclevar[i] = IloNumVarArray(env, cycles[i].size(), 0, 1, ILOINT);
@@ -93,7 +93,7 @@ pre_test_result Cycle_Scen(directedgraph G, const configuration & config)
 	IloCplex CPLEX(model);
 	CPLEX.setParam(IloCplex::TiLim, config.time_limit);
 	CPLEX.setParam(IloCplex::TreLim, config.memory_limit);
-	if(config.solver == 5)
+	if(config.solver == 4)
 		CPLEX.setParam(IloCplex::Param::Benders::Strategy, IloCplex::BendersFull);
 	CPLEX.solve();
 
@@ -203,7 +203,7 @@ pre_test_result EE_Scen(directedgraph G, const configuration &config)
 	IloCplex CPLEX(model);
 	CPLEX.setParam(IloCplex::TiLim, config.time_limit);
 	CPLEX.setParam(IloCplex::TreLim, config.memory_limit);
-	if(config.solver == 5)
+	if(config.solver == 4)
 		CPLEX.setParam(IloCplex::Param::Benders::Strategy, IloCplex::BendersFull);
 	CPLEX.solve();
 
@@ -462,7 +462,7 @@ cycle_variables_EE EE_Generate_Cycle_Var(IloEnv &env, directedgraph G, const con
 				convert << "x(" << Acopies[i][arc].startvertex << "," << Acopies[i][arc].endvertex << "," << scenario_number << ")";
 				string varname = convert.str();
 				const char* vname = varname.c_str();
-				if(config.solver == 5 || config.solver == 7)
+				if(config.solver == 3 || config.solver == 4)
 					c.Cycle_Arc_Variable[i][vars_added] = IloNumVar(env, 0, 1, ILOFLOAT,vname);
 				else
 					c.Cycle_Arc_Variable[i][vars_added] = IloNumVar(env, 0, 1, ILOINT, vname);

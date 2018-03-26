@@ -77,7 +77,7 @@ matching_result Hybrid_PIEF(directedgraph G, int chainlength, int cyclelength, c
 
 
 	IloCplex HPIEF_CPLEX(HPIEF);
-	if (config.solver == 4 || config.solver == 5)
+	if (config.solver == 1 || config.solver == 6 || config.solver == 7)
 	{
 		HPIEF_CPLEX.setOut(env.getNullStream());
 	}

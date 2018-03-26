@@ -118,13 +118,37 @@ pre_test_result HPIEF_Scen(directedgraph G, const configuration & config)
 	vector<IloRangeArray> test_constraint = Build_Test_Constraint(env, model, G, Testvar, Cyclevar, Cyclevar_arc_link, Chainvar, Chainvar_arc_link, config.nr_scenarios);
 	IloRange Max_Test_Constraint = Build_Max_Test_Constraint(env, model, Testvar, config.max_test);
 
+	// Test for Benders
+	/*IloRangeArray scen_constraint(env, config.nr_scenarios);
+	if (config.solver == 5)
+	{
+		for (int scen = 0; scen < config.nr_scenarios; scen++)
+		{
+			IloExpr expr(env);
+			scen_constraint[scen] = IloRange(expr <= 0);
+			for (int i = 0; i < Testvar.getSize(); i++)
+				scen_constraint[scen].setLinearCoef(Testvar[i], -1);
+			for (int i = 0; i < G.nr_pairs - 1; i++)
+			{
+				for (int j = 0; j < config.cyclelength; j++)
+				{
+					for (int k = 0; k < Cyclevar[scen][i][j].getSize(); k++)
+					{
+						scen_constraint[scen].setLinearCoef(Cyclevar[scen][i][j][k], G.arcs[Cyclevar_arc_link[scen][i][j][k]].weight);
+					}
+				}
+			}
+		}
+		model.add(scen_constraint);
+	}*/
+
 	IloCplex CPLEX(model);
 	CPLEX.setParam(IloCplex::TiLim, config.time_limit);
 	CPLEX.setParam(IloCplex::TreLim, config.memory_limit);
-	if(config.solver == 5)
+	if(config.solver == 4)
 		CPLEX.setParam(IloCplex::Param::Benders::Strategy, IloCplex::BendersFull);
 	CPLEX.solve();
-
+	
 	pre_test_result results;
 	results.objective_value = CPLEX.getObjValue() / config.nr_scenarios;
 	cout << results.objective_value << endl;
@@ -275,7 +299,7 @@ cycle_variables HPIEF_Scen_Generate_Cycle_Var(IloEnv &env, const directedgraph &
 						//convert << "x(" << nr_scen << "," << Acopies[i][k].startvertex << "," << Acopies[i][k].endvertex << "," << i << "," << j << ")";
 						//string varname = convert.str();
 						//const char* vname = varname.c_str();
-						if(config.solver == 5 || config.solver == 7)
+						if(config.solver == 3 || config.solver == 4)
 							c.Cyclevariable[i][j].add(IloNumVar(env, 0, 1, ILOFLOAT/*, vname*/));
 						else
 							c.Cyclevariable[i][j].add(IloNumVar(env, 0, 1, ILOINT/*, vname*/));
@@ -313,7 +337,7 @@ chain_variables HPIEF_Scen_Generate_Chain_Var(IloEnv & env, directedgraph G, con
 					convert << "y(" << nr_scen << "," << G.arcs[j].startvertex << "," << G.arcs[j].endvertex << "," << i << ")";
 					string varname = convert.str();
 					const char* vname = varname.c_str();
-					if(config.solver == 5 || config.solver == 7)
+					if(config.solver == 3 || config.solver == 4)
 						c.Chainvar[i].add(IloNumVar(env, 0, 1, ILOFLOAT, vname));
 					else
 						c.Chainvar[i].add(IloNumVar(env, 0, 1, ILOINT, vname));
@@ -325,7 +349,7 @@ chain_variables HPIEF_Scen_Generate_Chain_Var(IloEnv & env, directedgraph G, con
 					convert << "y(" << G.arcs[j].startvertex << "," << G.arcs[j].endvertex << "," << i << ")";
 					string varname = convert.str();
 					const char* vname = varname.c_str();
-					if (config.solver == 5 || config.solver == 7)
+					if (config.solver == 3 || config.solver == 4)
 						c.Chainvar[i].add(IloNumVar(env, 0, 1, ILOFLOAT, vname));
 					else
 						c.Chainvar[i].add(IloNumVar(env, 0, 1, ILOINT, vname));
@@ -688,7 +712,7 @@ pre_test_result Pre_Test_EE(directedgraph G, configuration &config)
 	IloCplex CPLEX(model);
 	CPLEX.setParam(IloCplex::TiLim, config.time_limit);
 	CPLEX.setParam(IloCplex::TreLim, config.memory_limit);
-	if (config.solver == 5)
+	if (config.solver == 4)
 		CPLEX.setParam(IloCplex::Param::Benders::Strategy, IloCplex::BendersFull);
 	CPLEX.solve();
 

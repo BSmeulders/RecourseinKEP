@@ -188,7 +188,7 @@ pre_test_result EE_Scen(directedgraph G, const configuration &config)
 		// Max one incoming arc per vertex.
 		vertex_inflow_cons_EE[scen] = Build_Vertex_Constraint_EE(env, model, G, Cyclevar[scen], Cyclevar_arc_link[scen]);
 
-		// If there is an arc arriving in position i, there should be an outgoing arc in position i+1 in the same copy (excluding the origin vertex in that copy).
+		// If there is an arc arriving in the vertex, there should be an outgoing arc in the same copy.
 		vertex_flow_cons_EE[scen] = Build_Vertex_Flow_Constraint_EE(env, model, G, Cyclevar[scen], Cyclevar_arc_link[scen]);
 
 		// Combined symmetry and cycle length constraint.
@@ -459,7 +459,7 @@ cycle_variables_EE EE_Generate_Cycle_Var(IloEnv &env, directedgraph G, const con
 			if (copy_arc_possible[i][arc] == 1)
 			{
 				ostringstream convert;
-				convert << "x(" << Acopies[i][arc].startvertex << "," << Acopies[i][arc].endvertex << "," << scenario_number << ")";
+				convert << "x(" << Acopies[i][arc].startvertex << "," << Acopies[i][arc].endvertex << "," << i << "," << scenario_number << ")";
 				string varname = convert.str();
 				const char* vname = varname.c_str();
 				if(config.solver == 3 || config.solver == 4)

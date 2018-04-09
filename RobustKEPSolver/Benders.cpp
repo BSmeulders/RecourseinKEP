@@ -60,7 +60,7 @@ pre_test_result Cycle_Scen(directedgraph G, const configuration & config)
 	// Create Testing Variables and Constraints.
 	IloNumVarArray Testvar = Generate_Testvar(env, G);
 	cout << "Testvar created" << endl;
-	
+
 	// Create the Objective Function
 	IloObjective obj = IloMaximize(env);
 	for (int scen = 0; scen < config.nr_scenarios; scen++)
@@ -199,6 +199,8 @@ pre_test_result EE_Scen(directedgraph G, const configuration &config)
 	IloNumVarArray Testvar = Generate_Testvar(env, G);
 	vector<IloRangeArray> test_constraint = Build_Test_Constraint_EE(env, model, G, Testvar, Cyclevar, Cyclevar_arc_link, config.nr_scenarios);
 	IloRange Max_Test_Constraint = Build_Max_Test_Constraint(env, model, Testvar, config.max_test);
+	Generate_Testvar_Connecting_Constraints(env, model, G, Testvar);
+
 
 	IloCplex CPLEX(model);
 	CPLEX.setParam(IloCplex::TiLim, config.time_limit);
@@ -271,7 +273,7 @@ IloRangeArray Generate_Test_Cycle_Constraint(IloEnv & env, IloNumVarArray & cycl
 			constraint[cycles[j].arcs[k]].setLinearCoef(cyclevar[j], -1);
 		}
 	}
-	
+
 	return constraint;
 }
 
@@ -416,7 +418,7 @@ vector<cycle_arcs> Find_Cycles_Bender(directedgraph G, const configuration & con
 		}
 	}
 
-	// Before this point, the 'arcs' that are saved are the index in the arc-vector. However, if working with scenarios this index is different from the 'arcnumber'. 
+	// Before this point, the 'arcs' that are saved are the index in the arc-vector. However, if working with scenarios this index is different from the 'arcnumber'.
 	// Here, we go return to the arcnumber.
 	for (int i = 0; i < cycles.size(); i++)
 	{
@@ -480,7 +482,7 @@ vector<vector<int>> cycle_preproces_EE(directedgraph G, const vector<vector<dire
 	// The pre-proces works as follows. First, for every copy, we calculate the minimum number of steps necessary to get to the vertex and
 	// the minmum number to get back to the starting vertex of that copy.
 
-	// Next, for each copy, we go through all of the arcs and see whether they can be used in that copy. We check whether 
+	// Next, for each copy, we go through all of the arcs and see whether they can be used in that copy. We check whether
 	// 1) The arc is valid in that copy (no start or endvertex that falls outside of the copy).
 	// 2) Whether there is a path to the arc, and from the arc back to the copy vertex, so that this cycle can be part of a cycle of length <= cyclelength.
 
@@ -584,7 +586,7 @@ vector<IloRangeArray> Build_Vertex_Flow_Constraint_EE(IloEnv & env, IloModel &mo
 		{
 			// This arc leaves the vertex G.arcs[indices].starvertex (=l). It should be added to VFC[copy][l-copy] with negative coefficient.
 			Vertex_Flow_Constraint[copy][G.arcs[cycle_link[copy][k]].startvertex - copy].setLinearCoef(cycle_var[copy][k], -1);
-			
+
 			// This arc arrives in the vertex G.arcs[indices].endvertex (=l). It should be added to VFC[copy][l-copy] with positive coefficnet.
 			Vertex_Flow_Constraint[copy][G.arcs[cycle_link[copy][k]].endvertex - copy].setLinearCoef(cycle_var[copy][k], 1);
 		}

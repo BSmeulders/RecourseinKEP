@@ -164,3 +164,7 @@ pre_test_result Cycle_Use_IP(configuration & config, const directedgraph & G, co
 
 matching_result Hybrid_PIEF_Heur(directedgraph G, int chainlength, int cyclelength, configuration & config);
 vector<directedgraph> Generate_Scenarios_Vertex_Tight_Heur(const directedgraph & G, int nr_scen);
+
+// Additional constraints on testing variables (flow, connection)
+IloRangeArray Generate_Testvar_Flow_Constraints(IloEnv & env, const directedgraph & G, const IloNumVarArray & Testvar);
+IloRangeArray Generate_Testvar_Connecting_Constraints(IloEnv & env, IloModel & model, const directedgraph & G, const IloNumVarArray & Testvar);

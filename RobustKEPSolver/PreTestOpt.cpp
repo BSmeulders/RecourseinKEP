@@ -5,7 +5,6 @@
 void Pre_Test_Float(directedgraph G, const configuration & config);
 cycle_variables Generate_Cycle_Var_Float(IloEnv &env, const directedgraph & G, int cyclelength, int nr_scen);
 IloNumVarArray Generate_Testvar_Float(IloEnv & env, directedgraph G);
-
 pre_test_result Pre_Test_EE(directedgraph G, configuration & config);
 
 using namespace std;
@@ -117,6 +116,7 @@ pre_test_result HPIEF_Scen(directedgraph G, const configuration & config)
 	IloNumVarArray Testvar = Generate_Testvar(env, G);
 	vector<IloRangeArray> test_constraint = Build_Test_Constraint(env, model, G, Testvar, Cyclevar, Cyclevar_arc_link, Chainvar, Chainvar_arc_link, config.nr_scenarios);
 	IloRange Max_Test_Constraint = Build_Max_Test_Constraint(env, model, Testvar, config.max_test);
+	 Generate_Testvar_Connecting_Constraints(env, model, G, Testvar);
 
 	// Test for Benders
 	/*IloRangeArray scen_constraint(env, config.nr_scenarios);
@@ -148,7 +148,7 @@ pre_test_result HPIEF_Scen(directedgraph G, const configuration & config)
 	if(config.solver == 4)
 		CPLEX.setParam(IloCplex::Param::Benders::Strategy, IloCplex::BendersFull);
 	CPLEX.solve();
-	
+
 	pre_test_result results;
 	results.objective_value = CPLEX.getObjValue() / config.nr_scenarios;
 	cout << results.objective_value << endl;
@@ -775,4 +775,42 @@ cycle_variables_EE Generate_Cycle_Var_EE(IloEnv &env, directedgraph G, int cycle
 		}
 	}
 	return c;
+}
+
+IloRangeArray Generate_Testvar_Flow_Constraints(IloEnv & env, const directedgraph & G, const IloNumVarArray & Testvar) {
+	IloRangeArray Testvar_Flow_Constraints(env, G.nr_pairs);
+	for (unsigned int i = 0; i < G.nr_pairs; ++i) {
+		ostringstream convert;
+		convert << "TestvarFlow(" << i << ")";
+		string varname = convert.str();
+		const char* vname = varname.c_str();
+		Testvar_Flow_Constraints[i] = IloRange(env, 0, 0, vname);
+		for (unsigned int k = 0; k < G.arcs.size(); ++k) {
+			if (G.arcs[k].startvertex == i) Testvar_Flow_Constraints[i].setLinearCoef(Testvar[k], -1);
+			if (G.arcs[k].endvertex == i) Testvar_Flow_Constraints[i].setLinearCoef(Testvar[k], 1);
+		}
+	}
+	return Testvar_Flow_Constraints;
+}
+
+IloRangeArray Generate_Testvar_Connecting_Constraints(IloEnv & env, IloModel & model, const directedgraph & G, const IloNumVarArray & Testvar) {
+	IloRangeArray Testvar_OutConnecting_Constraints(env, G.arcs.size());
+	IloRangeArray Testvar_InConnecting_Constraints(env, G.arcs.size());
+	for (unsigned int i = 0; i < G.arcs.size(); ++i) {
+		IloExpr expr_out(env);
+		IloExpr expr_in(env);
+		Testvar_OutConnecting_Constraints[i] = IloRange(expr_out <= 0);
+		Testvar_InConnecting_Constraints[i] = IloRange(expr_in <= 0);
+		Testvar_OutConnecting_Constraints[i].setUB(0);
+		Testvar_InConnecting_Constraints[i].setUB(0);
+		Testvar_OutConnecting_Constraints[i].setLinearCoef(Testvar[i], 1);
+		Testvar_InConnecting_Constraints[i].setLinearCoef(Testvar[i], 1);
+		for (unsigned int k = 0; k < G.arcs.size(); ++k) {
+			if (G.arcs[k].startvertex == G.arcs[i].endvertex) Testvar_OutConnecting_Constraints[i].setLinearCoef(Testvar[k], -1);
+			if (G.arcs[k].endvertex == G.arcs[i].startvertex) Testvar_InConnecting_Constraints[i].setLinearCoef(Testvar[k], -1);
+		}
+	}
+	model.add(Testvar_OutConnecting_Constraints);
+	model.add(Testvar_InConnecting_Constraints);
+	cout << "Added Testvar Connecting Constraints" << endl;
 }

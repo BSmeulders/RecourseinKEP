@@ -12,11 +12,11 @@ using namespace std;
 void pre_test_main(const configuration & config, directedgraph G)
 {
 	pre_test_result results;
-	if (config.bender_type == 1)
+	if (config.formulation == 1)
 		results = HPIEF_Scen(G, config);
-	else if (config.bender_type == 2)
+	else if (config.formulation == 2)
 		results = EE_Scen(G, config);
-	else if (config.bender_type == 3)
+	else if (config.formulation == 3)
 		results = Cycle_Scen(G, config);
 	Output_Pre_Test(results, config);
 }
@@ -116,7 +116,17 @@ pre_test_result HPIEF_Scen(directedgraph G, const configuration & config)
 	IloNumVarArray Testvar = Generate_Testvar(env, G);
 	vector<IloRangeArray> test_constraint = Build_Test_Constraint(env, model, G, Testvar, Cyclevar, Cyclevar_arc_link, Chainvar, Chainvar_arc_link, config.nr_scenarios);
 	IloRange Max_Test_Constraint = Build_Max_Test_Constraint(env, model, Testvar, config.max_test);
-	 Generate_Testvar_Connecting_Constraints(env, model, G, Testvar);
+	vector<vector<IloNumVarArray>> Testcycle_var = Generate_TestCycle_Var(env, G, config);
+	if (config.bender_version == 1)
+	{
+		Generate_Testvar_Connecting_Constraints(env, model, G, Testvar);
+	}
+	else if (config.bender_version == 2)
+	{
+		vector<vector<IloNumVarArray>> Testcycle_var = Generate_TestCycle_Var(env, G, config);
+		Generate_Testvar_Cycle_Constraints(env, model, G, config, Testvar, Testcycle_var);
+	}
+
 
 	// Test for Benders
 	/*IloRangeArray scen_constraint(env, config.nr_scenarios);
@@ -375,6 +385,45 @@ IloNumVarArray Generate_Testvar(IloEnv & env, directedgraph G)
 	}
 
 	return Testvar;
+}
+
+vector<vector<IloNumVarArray>> Generate_TestCycle_Var(IloEnv & env, const directedgraph & G, const configuration & config)
+{
+	vector<vector<IloNumVarArray>> TestCycle_Var(G.size);
+	for (int copy = 0; copy < G.size; copy++)
+	{
+		TestCycle_Var[copy].resize(config.cyclelength);
+		for (int pos = 0; pos < config.cyclelength; pos++)
+		{
+			if (pos < config.cyclelength - 1)
+			{
+				TestCycle_Var[copy][pos] = IloNumVarArray(env, G.arcs.size(), 0, 1, ILOINT);
+				for (int arc = 0; arc < G.arcs.size(); arc++)
+				{
+					ostringstream convert;
+					convert << "TestCyle[" << copy << "," << pos << ",(" << G.arcs[arc].startvertex << "," << G.arcs[arc].endvertex << ")]";
+					string varname = convert.str();
+					const char* vname = varname.c_str();
+					TestCycle_Var[copy][pos][arc].setName(vname);
+				}
+			}
+			else
+			{
+				TestCycle_Var[copy][pos] = IloNumVarArray(env, G.arcs.size(), 0, 0, ILOINT);
+				for (int arc = 0; arc < G.arcs.size(); arc++)
+				{
+					ostringstream convert;
+					convert << "TestCyle[" << copy << "," << pos << ",(" << G.arcs[arc].startvertex << "," << G.arcs[arc].endvertex << ")]";
+					string varname = convert.str();
+					const char* vname = varname.c_str();
+					TestCycle_Var[copy][pos][arc].setName(vname);
+					if (G.arcs[arc].endvertex == copy)
+						TestCycle_Var[copy][pos][arc].setUB(1);
+				}
+			}
+		}
+	}
+	return TestCycle_Var;
 }
 
 vector<IloRangeArray> Build_Test_Constraint(IloEnv & env, IloModel model, directedgraph G, const IloNumVarArray & Testvar, const vector<vector<vector<IloNumVarArray>>>& Cyclevar, const vector<vector<vector<vector<int>>>>& cycle_link, const vector<vector<IloNumVarArray>>& Chainvar, const vector<vector<vector<int>>>& chain_link, int nr_scen)
@@ -813,4 +862,59 @@ IloRangeArray Generate_Testvar_Connecting_Constraints(IloEnv & env, IloModel & m
 	model.add(Testvar_OutConnecting_Constraints);
 	model.add(Testvar_InConnecting_Constraints);
 	cout << "Added Testvar Connecting Constraints" << endl;
+}
+
+IloRangeArray Generate_Testvar_Cycle_Constraints(IloEnv & env, IloModel & model, const directedgraph & G, const configuration & config, const IloNumVarArray & Testvar, const vector<vector<IloNumVarArray>>& TestCycle_Var)
+{
+	IloRangeArray First_Position_Constraint(env, G.arcs.size());
+	for (int arc = 0; arc < G.arcs.size(); arc++)
+	{
+		IloExpr expr(env);
+		First_Position_Constraint[arc] = IloRange(expr <= 0);
+		First_Position_Constraint[arc].setLinearCoef(Testvar[arc], 1);
+		First_Position_Constraint[arc].setLinearCoef(TestCycle_Var[G.arcs[arc].startvertex][0][arc], -1);
+	}
+	model.add(First_Position_Constraint);
+
+	vector<vector<IloRangeArray>> Test_Use_Constraint(G.size);
+	for (int copy = 0; copy < G.size; copy++)
+	{
+		Test_Use_Constraint[copy].resize(config.cyclelength - 1); // No constraints for position 1.
+		for (int pos = 0; pos < config.cyclelength - 1; pos++)
+		{
+			Test_Use_Constraint[copy][pos] = IloRangeArray(env, G.arcs.size());
+			for (int arc = 0; arc < G.arcs.size(); arc++)
+			{
+				// Pos + 1, because this constraint is not necessary for position 0, only for 1 to K-1
+				Test_Use_Constraint[copy][pos][arc] = IloRange(TestCycle_Var[copy][pos + 1][arc] - Testvar[arc] <= 0);
+			}
+			model.add(Test_Use_Constraint[copy][pos]);
+		}
+	}
+	vector<vector<IloRangeArray>> Test_Connection_Constraint(G.size);
+	for (int copy = 0; copy < G.size; copy++)
+	{
+		Test_Connection_Constraint[copy].resize(config.cyclelength - 1);
+		for (int pos = 0; pos < config.cyclelength - 1; pos++)
+		{
+			Test_Connection_Constraint[copy][pos] = IloRangeArray(env, G.arcs.size());
+			for (int arc = 0; arc < G.arcs.size(); arc++)
+			{
+				if (copy != G.arcs[arc].endvertex)
+				{
+					Test_Connection_Constraint[copy][pos][arc] = IloRange(TestCycle_Var[copy][pos][arc] <= 0);
+					for (int arc2 = 0; arc2 < G.arcs.size(); arc2++)
+					{
+						if (G.arcs[arc].endvertex == G.arcs[arc2].startvertex)
+						{
+							Test_Connection_Constraint[copy][pos][arc].setLinearCoef(TestCycle_Var[copy][pos + 1][arc2], -1);
+						}
+					}
+				}
+			}
+			model.add(Test_Connection_Constraint[copy][pos]);
+		}
+	}
+
+
 }

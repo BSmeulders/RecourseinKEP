@@ -109,7 +109,8 @@ struct configuration {
 	int time_limit;
 	int memory_limit;
 	int solver;
-	int bender_type;
+	int formulation;
+	int bender_version;
 	int calc_expected_type;
 	int failure_type;
 	int scen_gen;

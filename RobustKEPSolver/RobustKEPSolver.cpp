@@ -53,7 +53,7 @@ void Choose_Solver(configuration & config, directedgraph & G)
 		cout << "Matheuristics" << endl;
 		Cycle_Heuristic(config, G);
 	}
-	
+
 	else if (config.solver == 6)
 	{
 		cout << "Evaluation of solutions" << endl;
@@ -82,6 +82,7 @@ configuration Readconfig(char configname[], int * error)
 		("Subset Recourse Size", po::value<int>(&config.subset_size)->default_value(0), "")
 		("Input Type", po::value<int>(&config.input_data)->default_value(1), "")
 		("Solution Input File", po::value<string>(&config.solution_input)->default_value("Graph.txt"), "")
+		("Seed", po::value<long int>(&config.seed)->default_value(0), "")
 		("Input File", po::value<string>(&config.inputfile)->default_value("Graph.txt"), "")
 		("Graph Output", po::value<string>(&config.graph_output)->default_value("Graph.txt"), "")
 		("Testvar Output", po::value<string>(&config.testvar_output)->default_value("Testvar.txt"), "")
@@ -116,8 +117,14 @@ configuration Readconfig(char configname[], int * error)
 	}
 	// Set seed according to filename before returning.
 	hash<string> hash_fn;
-	unsigned int seed = hash_fn(config.inputfile);
-	srand(seed);
-	cout << "Seed set to " << seed << endl;
+	long int seed = hash_fn(config.inputfile);
+	if (config.seed == 0) {
+		srand(seed);
+		cout << "Seed set to " << seed << endl;
+	}
+	else {
+		srand(config.seed);
+		cout << "Seed set from config file : " << config.seed << endl;
+	}
 	return config;
 }

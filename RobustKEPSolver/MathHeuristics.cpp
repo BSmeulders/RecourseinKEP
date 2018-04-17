@@ -191,13 +191,13 @@ void Cycle_Heuristic(configuration & config, directedgraph G)
 				cout << "(" << G.arcs[i].startvertex << "," << G.arcs[i].endvertex << ") \t" << arc_use[i] << "\t" << arc_tested[i] << endl;
 		}
 
-		vector<int> to_delete = Identify_Arcs_To_Delete2(G, arc_use, arc_tested, config.nr_scenarios);
+		/*vector<int> to_delete = Identify_Arcs_To_Delete2(G, arc_use, arc_tested, config.nr_scenarios);
 		if (to_delete.size() > 0)
 		{
 			run_loop = 1;
 			delete_from_G(G, to_delete);
 			delete_from_scen(scenarios, arcnumbers, to_delete);
-		}
+		}*/
 	}
 
 }
@@ -719,7 +719,7 @@ matching_result Hybrid_PIEF_Heur(directedgraph G, int chainlength, int cycleleng
 
 
 	IloCplex HPIEF_CPLEX(HPIEF);
-	if (config.solver == 4)
+	if (config.solver == 7)
 	{
 		HPIEF_CPLEX.setOut(env.getNullStream());
 	}

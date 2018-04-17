@@ -105,7 +105,7 @@ struct configuration {
 	string graph_output;
 	string testvar_output;
 	string solution_input; // The file to read in a previous (pre-test) solution.
-	int seed;
+	long int seed;
 	int time_limit;
 	int memory_limit;
 	int solver;

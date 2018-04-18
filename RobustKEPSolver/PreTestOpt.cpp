@@ -889,7 +889,6 @@ IloRangeArray Generate_Testvar_Cycle_Constraints(IloEnv & env, IloModel & model,
 				Test_Use_Constraint[copy][pos][arc] = IloRange(TestCycle_Var[copy][pos + 1][arc] - Testvar[arc] <= 0);
 			}
 			model.add(Test_Use_Constraint[copy][pos]);
-			cout << "Added benders connecting constraints" << endl;
 		}
 	}
 	vector<vector<IloRangeArray>> Test_Connection_Constraint(G.size);
@@ -914,9 +913,8 @@ IloRangeArray Generate_Testvar_Cycle_Constraints(IloEnv & env, IloModel & model,
 				}
 			}
 			model.add(Test_Connection_Constraint[copy][pos]);
-			cout << "Added benders cycles constraints" << endl;
 		}
 	}
-
+	cout << "Added benders cycles constraints" << endl;
 
 }

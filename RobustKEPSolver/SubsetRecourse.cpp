@@ -21,14 +21,15 @@ void Subset_Recourse(configuration & config, directedgraph G)
 
 	time_t current_time;
 	time(&current_time);
-	double remaining_time = difftime(current_time, start_time);
+	double elapsed_time = difftime(current_time, start_time);
+	double remaining_time = difftime(config.time_limit, elapsed_time);
 	cout << "There are " << subsets.size() << " subsets." << endl;
 	pre_test_result results = Subset_MIP(subsets, G, config, remaining_time, start_time);
 	Output_Subset_Recourse(results, config);
 }
 
 pre_test_result Subset_MIP(const vector<cycle_arcs> & subsets, const directedgraph & G, const configuration & config, double remaining_time, const time_t & start_time)
-{	
+{
 	IloEnv env;
 	IloModel MIP(env);
 	IloNumVarArray subsetvar(env, subsets.size(), subsets.size(), ILOINT);
@@ -154,7 +155,7 @@ void Relevant_Subsets_Recursion(vector<cycle_arcs>& accepted, cycle_arcs current
 {
 	int nr_candidates = candidates.size();
 	for(int i = 0; i < nr_candidates; i++) // At first glance, going until the queue is emptied looks cleaner
-											// However, in this way, we can evaluate each candidate once, 
+											// However, in this way, we can evaluate each candidate once,
 											// while still allowing disjoint candidates to be added back into the queue.
 	{
 		cycle_arcs parent = current;
@@ -178,7 +179,7 @@ void Relevant_Subsets_Recursion(vector<cycle_arcs>& accepted, cycle_arcs current
 			// If neither of these happen, combine the parent and the candidate.
 			Vertex_Combine(parent, candidates.front());
 			candidates.pop();
-			
+
 			// Add the new current to the set of accepted subsets (if it is not already included.)
 			{
 				bool included = 0;
@@ -209,7 +210,7 @@ void Relevant_Subsets_Recursion(vector<cycle_arcs>& accepted, cycle_arcs current
 				{
 					remaining_can.pop();
 				}
-					
+
 			}
 			if (remaining_can.size() > 0)
 			{
@@ -222,7 +223,7 @@ void Relevant_Subsets_Recursion(vector<cycle_arcs>& accepted, cycle_arcs current
 void Subset_Arcs(vector<cycle_arcs>& subsets, const directedgraph & G, const configuration & config)
 {
 	// This could be improved upon by weeding out the arcs that can not be part of a cycle in the subset.
-	
+
 	for (int i = 0; i < subsets.size(); i++)
 	{
 		subsets[i].arcs.resize(0); // First clean it out.
@@ -236,7 +237,7 @@ void Subset_Arcs(vector<cycle_arcs>& subsets, const directedgraph & G, const con
 					{
 						subsets[i].arcs.push_back(k); // If it is, add it to the arcs of the subset.
 					}
-						
+
 				}
 			}
 		}
@@ -456,7 +457,7 @@ float Subset_Set_Weights_Vertex_Root(const directedgraph & G, const configuratio
 float Subset_Set_Weights_Arc_Recursion(IloEnv & env, const directedgraph & G, IloCplex & CPLEX, IloNumVarArray & arcvar, vector<bool> fixed, float CPLEX_Solution, vector<int> arc_sol, bool succes_fix, int depth)
 {
 	depth++;
-	
+
 	float weight = 0;
 
 	if (succes_fix == 0)
@@ -814,8 +815,8 @@ IloRangeArray Build_Vertex_Constraint_SSWR(IloEnv & env, const directedgraph & G
 		for (int j = 0; j < cycles[i].arcs.size(); j++)
 		Vertex_Constraint[G.arcs[cycles[i].arcs[j]].startvertex].setLinearCoef(cyclevar[i], 1);
 	}
-	
-	
+
+
 	return Vertex_Constraint;
 }
 
@@ -832,7 +833,7 @@ IloRangeArray Build_Cycle_Constraint_SSWR(IloEnv & env, const directedgraph & G,
 			Cycle_Constraint[i].setLinearCoef(arcvar[cycles[i].arcs[j]], -1);
 		}
 	}
-	
+
 	return Cycle_Constraint;
 }
 
@@ -984,13 +985,13 @@ bool Vertex_Disjoint(const cycle_arcs & parent, const cycle_arcs & candidate)
 			}
 		}
 	}
-	
+
 	return disjoint;
 }
 
 int Vertex_Sum(const cycle_arcs & parent, const cycle_arcs & candidate)
 {
-	int nr_vertices = parent.vertices.size(); 
+	int nr_vertices = parent.vertices.size();
 	for (int i = 0; i < candidate.vertices.size(); i++)
 	{
 		bool notinparent = 1;
@@ -1005,7 +1006,7 @@ int Vertex_Sum(const cycle_arcs & parent, const cycle_arcs & candidate)
 		if (notinparent == 1)
 			nr_vertices++;
 	}
-	
+
 	return nr_vertices;
 }
 
@@ -1017,6 +1018,6 @@ bool arcsort(directedarc a, directedarc b)
 	else if (a.startvertex == b.startvertex && a.endvertex < b.endvertex)
 		afirst = 1;
 
-	
+
 	return afirst;
 }

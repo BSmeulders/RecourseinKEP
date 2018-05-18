@@ -89,6 +89,16 @@ pre_test_result Cycle_Scen(directedgraph G, const configuration & config)
 	}
 	IloRange Max_Test_Constraint = Build_Max_Test_Constraint(env, model, Testvar, config.max_test);
 	model.add(Max_Test_Constraint);
+	if (config.bender_version == 1)
+	{
+		Generate_Testvar_Connecting_Constraints(env, model, G, Testvar);
+	}
+	else if (config.bender_version == 2)
+	{
+		vector<vector<IloNumVarArray>> Testcycle_var = Generate_TestCycle_Var(env, G, config);
+		Generate_Testvar_Cycle_Constraints(env, model, G, config, Testvar, Testcycle_var);
+	}
+
 
 	IloCplex CPLEX(model);
 	CPLEX.setParam(IloCplex::TiLim, config.time_limit);
@@ -208,7 +218,7 @@ pre_test_result EE_Scen(directedgraph G, const configuration &config)
 		vector<vector<IloNumVarArray>> Testcycle_var = Generate_TestCycle_Var(env, G, config);
 		Generate_Testvar_Cycle_Constraints(env, model, G, config, Testvar, Testcycle_var);
 	}
-	
+
 
 
 	IloCplex CPLEX(model);

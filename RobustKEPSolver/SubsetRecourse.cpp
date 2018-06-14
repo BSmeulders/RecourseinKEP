@@ -235,7 +235,11 @@ void Subset_Arcs(vector<cycle_arcs>& subsets, const directedgraph & G, const con
 				{
 					if (G.arcs[k].endvertex == subsets[i].vertices[l]) // Check whether it is the endvertex
 					{
-						subsets[i].arcs.push_back(k); // If it is, add it to the arcs of the subset.
+						bool isPresent = false;
+						for (int m = 0; m < subsets[i].arcs.size(); ++m) {
+							if (subsets[i].arcs[m] == k) isPresent = true;
+						}
+						if (!isPresent) subsets[i].arcs.push_back(k); // If it is, add it to the arcs of the subset.
 					}
 
 				}

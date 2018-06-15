@@ -395,6 +395,8 @@ vector<vector<IloNumVarArray>> Generate_TestCycle_Var(IloEnv & env, const direct
 		TestCycle_Var[copy].resize(config.cyclelength);
 		for (int pos = 0; pos < config.cyclelength; pos++)
 		{
+			// If the position is not the final position, all arcs can be used for this flow (in theory, position 1 is only for arcs going out
+			// of the original vertex, but there is no reason to set this to one for any other arc, we allow it, CPLEX simply won't use it.)
 			if (pos < config.cyclelength - 1)
 			{
 				TestCycle_Var[copy][pos] = IloNumVarArray(env, G.arcs.size(), 0, 1, ILOINT);
@@ -407,6 +409,7 @@ vector<vector<IloNumVarArray>> Generate_TestCycle_Var(IloEnv & env, const direct
 					TestCycle_Var[copy][pos][arc].setName(vname);
 				}
 			}
+			// We only use the final position for arcs going back to the origin vertex.
 			else
 			{
 				TestCycle_Var[copy][pos] = IloNumVarArray(env, G.arcs.size(), 0, 0, ILOINT);
@@ -891,6 +894,7 @@ IloRangeArray Generate_Testvar_Cycle_Constraints(IloEnv & env, IloModel & model,
 			model.add(Test_Use_Constraint[copy][pos]);
 		}
 	}
+
 	vector<vector<IloRangeArray>> Test_Connection_Constraint(G.size);
 	for (int copy = 0; copy < G.size; copy++)
 	{
@@ -915,6 +919,6 @@ IloRangeArray Generate_Testvar_Cycle_Constraints(IloEnv & env, IloModel & model,
 			model.add(Test_Connection_Constraint[copy][pos]);
 		}
 	}
-	cout << "Added benders cycles constraints" << endl;
+	cout << "*Generating Cycle <= K Constraints " << endl;
 
 }

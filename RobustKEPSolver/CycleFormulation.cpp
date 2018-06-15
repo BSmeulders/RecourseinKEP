@@ -2,6 +2,18 @@
 #include "Structures.h"
 #include "Functions.h"
 
+bool Is_already_in_path(const directedgraph & G, const vector<int> & path, int v) {
+	bool inPath = false;
+	for (int i = 0; i < path.size(); ++i) {
+		if (G.arcs[path[i]].startvertex == v || G.arcs[path[i]].endvertex == v) {
+			inPath = true;
+			break;
+		}
+	}
+	return inPath;
+}
+
+
 vector<cycle_arcs> Find_Cycles(directedgraph G, const configuration & config)
 {
 	// This function identifies all cycles in the graph.
@@ -10,7 +22,7 @@ vector<cycle_arcs> Find_Cycles(directedgraph G, const configuration & config)
 	vector<vector<directedarc>> copies = DP_Copy(G);
 	vector<vector<int>> distances = distance_calc_to(G, copies, config.cyclelength);
 	vector<int> first_arc = Find_First_arc(G);
-	
+
 	for (int i = 0; i < G.nr_pairs; i++) // We loop through all vertices as possible starting points of the cycles.
 	{
 		queue<vector<int>> paths; // A queue (to allow deleting elements at the front) including all current paths.
@@ -43,7 +55,7 @@ vector<cycle_arcs> Find_Cycles(directedgraph G, const configuration & config)
 						temp_cycle.weight = 0;
 						cycles.push_back(temp_cycle);
 					}
-					else if (distances[i][G.arcs[j].endvertex] + path_vector.size() < config.cyclelength)
+					else if (!Is_already_in_path(G, path_vector, G.arcs[j].endvertex) && distances[i][G.arcs[j].endvertex] + path_vector.size() < config.cyclelength)
 					{
 						vector<int> new_path = path_vector;
 						new_path.push_back(j);
@@ -57,7 +69,7 @@ vector<cycle_arcs> Find_Cycles(directedgraph G, const configuration & config)
 	for (int i = 0; i < cycles.size(); i++)
 	{
 		for (int j = 0; j < cycles[i].arcs.size(); j++)
-		{		
+		{
 			cycles[i].vertices.push_back(G.arcs[cycles[i].arcs[j]].startvertex);
 			cycles[i].weight = cycles[i].weight + G.arcs[cycles[i].arcs[j]].weight;
 		}
@@ -92,7 +104,7 @@ vector<int> Find_First_arc(directedgraph & G)
 		if (G.arcs[i].startvertex >= vertex)
 		{
 			first_arc[vertex] = i;	// If the if statement is TRUE, this must be the first time G.arcs[i].startvertex >= vertex (since vertex increases
-									// in the following line. 
+									// in the following line.
 			vertex++;				// We start evaluating the following vertex.
 			i--;					// In case one vertex has not outgoing vertices; We lower i by one, so the same arc is evaluated again.
 		}
@@ -102,7 +114,7 @@ vector<int> Find_First_arc(directedgraph & G)
 	{
 		first_arc[i] = G.arcs.size();
 	}
-	
+
 
 	return first_arc;
 }

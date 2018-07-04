@@ -24,6 +24,7 @@ void Subset_Recourse(configuration & config, directedgraph G);
 void Deterministic_KEP(configuration & config, directedgraph G);
 pre_test_result HPIEF_Scen(directedgraph G, const configuration & config); // Pre_test outputs a new graph, using only the arcs chosen in the optimization.
 pre_test_result EE_Scen(directedgraph G, const configuration & config);
+pre_test_result Unlim_Cycle_Scen(directedgraph G, const configuration & config);
 pre_test_result Cycle_Scen(directedgraph G, const configuration & config);
 matching_result Hybrid_PIEF(directedgraph G, int chainlength, int cyclength, configuration & config);
 matching_result PICEF(directedgraph G, configuration & config);
@@ -69,6 +70,11 @@ IloRangeArray Build_Symmetry_Cycle_Length_Constraint_EE(IloEnv & env, IloModel &
 vector<IloRangeArray> Build_Test_Constraint_EE(IloEnv & env, IloModel model, const directedgraph & G, const IloNumVarArray & Testvar, const vector<vector<IloNumVarArray>>& Cyclevar, const vector<vector<vector<int>>>& cycle_link, int nr_scen);
 vector<vector<int>> cycle_preproces_EE(directedgraph G, const vector<vector<directedarc>> & Acopies, int cyclelength);
 cycle_variables_EE Generate_Cycle_Var_EE(IloEnv &env, directedgraph G, int cyclelength, int scenario_number);
+
+// Functions for unlimited cycle relaxation Benders
+IloRangeArray Build_Donor_Constraints(IloEnv & env, IloModel &model, const directedgraph & G, IloNumVarArray Cycle_var, vector<int> cycle_link, IloNumVarArray No_Match_Var);
+IloRangeArray Build_Patient_Constraints(IloEnv & env, IloModel & model, const directedgraph & G, IloNumVarArray Cycle_var, vector<int> cycle_link, IloNumVarArray No_Match_Var);
+vector<IloRangeArray> Build_Test_Constraint_Unlim(IloEnv & env, IloModel model, const directedgraph & G, const IloNumVarArray & Testvar, const vector<IloNumVarArray>& Cyclevar, const vector<vector<int>>& cycle_link, int nr_scen);
 
 // Functions for Subset Recourse
 pre_test_result Subset_MIP(const vector<cycle_arcs> & subsets,const directedgraph & G, const configuration & config, double remaining_time, const time_t & start_time);

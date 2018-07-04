@@ -248,7 +248,6 @@ pre_test_result EE_Scen(directedgraph G, const configuration &config)
 	return results;
 }
 
-
 IloRangeArray Generate_Vertex_Use_Constraint(IloEnv & env, const directedgraph & G, const vector<cycle_arcs>& cycles, IloNumVarArray& cyclevar, int scen)
 {
 	IloRangeArray constraint(env, G.size);
@@ -675,4 +674,221 @@ vector<vector<int>> distance_calc_from(const directedgraph & G, const vector<vec
 	}
 
 	return distance;
+}
+
+pre_test_result Unlim_Cycle_Scen(directedgraph G, const configuration & config)
+{
+	cout << "Unlimited Cycle Formulation (Relaxation)" << endl;
+	directedgraph Tested_Graph = G;
+	vector<directedgraph> Scenarios;
+	if (config.failure_type == 1)
+	{
+		cout << "Arcs Fail" << endl;
+		if (config.scen_gen == 1)
+		{
+			Scenarios = Generate_Scenarios_Tight(G, config.nr_scenarios); cout << "Tight Scen Generator" << endl;
+		}
+		else
+		{
+			Scenarios = Generate_Scenarios(G, config.nr_scenarios); cout << "Basic Scen Generator" << endl;
+		}
+
+	}
+	else if (config.failure_type == 2)
+	{
+		cout << "Vertices Fail" << endl;
+		Scenarios = Generate_Scenarios_Vertex_Tight(G, config.nr_scenarios);
+	}
+	cout << "Scenarios Generated" << endl;
+
+	time_t start_time;
+	time(&start_time);
+	IloEnv env;
+	IloModel model(env);
+	cout << "Generating Variables" << endl;
+	vector<IloNumVarArray> Cyclevar(config.nr_scenarios); // First index is scenario, second the individual arcs.
+	vector<vector<int>> Cyclevar_arc_link(config.nr_scenarios); // A vector to link the variables to the original arc. Cyclevar_arc_link[i][j][k] = m, means that this variable corresponds to the m-th arc in the original arc list.
+	vector<IloNumVarArray> No_Match_Var(config.nr_scenarios); // These variables are used match a donor to its own patient, i.e. they are not matched in the exchange.
+	
+	for (int i = 0; i < config.nr_scenarios; i++)
+	{
+		Cyclevar_arc_link[i].resize(Scenarios[i].arcs.size());
+		Cyclevar[i] = IloNumVarArray(env, Scenarios[i].arcs.size());
+		No_Match_Var[i] = IloNumVarArray(env, G.nr_pairs);
+		
+		
+		for (int j = 0; j < Scenarios[i].arcs.size(); j++)
+		{
+			ostringstream convert;
+			convert << "x(" << Scenarios[i].arcs[j].startvertex << "," << Scenarios[i].arcs[j].endvertex << "," << i << ")";
+			string varname = convert.str();
+			const char* vname = varname.c_str();
+			Cyclevar[i][j] = IloNumVar(env, 0, 1, ILOFLOAT, vname);
+			Cyclevar_arc_link[i][j] = Scenarios[i].arcs[j].arcnumber;
+		}
+		cout << "Cyclevar Generated" << endl;
+		for (int j = 0; j < G.nr_pairs; j++)
+		{
+			ostringstream convert;
+			convert << "No(" << j << "," << j << "," << i << ")";
+			string varname = convert.str();
+			const char* vname = varname.c_str();
+			No_Match_Var[i][j] = IloNumVar(env, 0, 1, ILOFLOAT, vname);
+		}
+	}
+	
+	// Include chainvar if needed
+	cout << "Variables Generated" << endl;
+	// Create the Objective Function
+	IloObjective obj = IloMaximize(env);
+	for (int scen = 0; scen < config.nr_scenarios; scen++)
+	{
+		if (Cyclevar[scen].getSize() > 0)
+		{
+			IloNumArray weights(env, Cyclevar[scen].getSize());
+			for (int arc = 0; arc < Cyclevar[scen].getSize(); arc++)
+			{
+				weights[arc] = G.arcs[Cyclevar_arc_link[scen][arc]].weight;
+			}
+			obj.setLinearCoefs(Cyclevar[scen], weights);
+		}
+	}
+	model.add(obj);
+	cout << "Objective Created" << endl;
+
+	// Create Constraints per scenario.
+	vector<IloRangeArray> Donor_cons_Unlim(config.nr_scenarios);
+	vector<IloRangeArray> Patient_cons_Unlim(config.nr_scenarios);
+
+	for (int scen = 0; scen < config.nr_scenarios; scen++)
+	{
+		if (scen % 100 == 0)
+			cout << "Generating constraints for scenario " << scen << endl;
+		// Max one incoming arc per vertex.
+		Donor_cons_Unlim[scen] = Build_Donor_Constraints(env, model, G, Cyclevar[scen], Cyclevar_arc_link[scen], No_Match_Var[scen]);
+
+		// If there is an arc arriving in the vertex, there should be an outgoing arc in the same copy.
+		Patient_cons_Unlim[scen] = Build_Patient_Constraints(env, model, G, Cyclevar[scen], Cyclevar_arc_link[scen], No_Match_Var[scen]);
+	}
+
+	//Create Testing Variables and Constraints.
+	IloNumVarArray Testvar = Generate_Testvar(env, G);
+	vector<IloRangeArray> test_constraint = Build_Test_Constraint_Unlim(env, model, G, Testvar, Cyclevar, Cyclevar_arc_link, config.nr_scenarios);
+	IloRange Max_Test_Constraint = Build_Max_Test_Constraint(env, model, Testvar, config.max_test);
+	if (config.bender_version == 1)
+	{
+		Generate_Testvar_Connecting_Constraints(env, model, G, Testvar);
+	}
+	else if (config.bender_version == 2)
+	{
+		vector<vector<IloNumVarArray>> Testcycle_var = Generate_TestCycle_Var(env, G, config);
+		Generate_Testvar_Cycle_Constraints(env, model, G, config, Testvar, Testcycle_var);
+	}
+
+
+
+	IloCplex CPLEX(model);
+	CPLEX.setParam(IloCplex::TiLim, config.time_limit);
+	CPLEX.setParam(IloCplex::TreLim, config.memory_limit);
+	if (config.solver == 4)
+	{
+		CPLEX.setParam(IloCplex::Param::Benders::Strategy, IloCplex::BendersFull);
+	}
+	CPLEX.exportModel("aUnlimCycleRelax.lp");
+	CPLEX.solve();
+
+	pre_test_result results;
+	results.objective_value = CPLEX.getObjValue() / config.nr_scenarios;
+	cout << results.objective_value << endl;
+
+	time_t current_time;
+	time(&current_time);
+	results.computation_time = difftime(current_time, start_time);
+
+	for (int i = 0; i < G.arcs.size(); i++)
+	{
+		if (CPLEX.getValue(Testvar[i]) > 0.99)
+		{
+			results.tested_arcs.push_back(G.arcs[i]);
+		}
+	}
+	return results;
+}
+
+IloRangeArray Build_Donor_Constraints(IloEnv & env, IloModel & model, const directedgraph & G, IloNumVarArray Cycle_var, vector<int> cycle_link, IloNumVarArray No_Match_Var)
+{
+	IloRangeArray Donor_Constraint(env, G.nr_pairs);
+
+	for (int i = 0; i < G.nr_pairs; i++)
+	{
+		ostringstream convert;
+		convert << "Donor(" << i << ")";
+		string varname = convert.str();
+		const char* vname = varname.c_str();
+		Donor_Constraint[i] = IloRange(env, 1, 1, vname);
+		Donor_Constraint[i].setLinearCoef(No_Match_Var[i], 1);
+	}
+	for (int arc = 0; arc < cycle_link.size(); arc++)
+	{
+		Donor_Constraint[G.arcs[cycle_link[arc]].startvertex].setLinearCoef(Cycle_var[arc], 1);
+	}
+	
+	for (int i = 0; i < G.nr_pairs; i++)
+	{
+		model.add(Donor_Constraint[i]);
+	}
+
+	return Donor_Constraint;
+}
+
+IloRangeArray Build_Patient_Constraints(IloEnv & env, IloModel & model, const directedgraph & G, IloNumVarArray Cycle_var, vector<int> cycle_link, IloNumVarArray No_Match_Var)
+{
+	IloRangeArray Patient_Constraint(env, G.nr_pairs);
+
+	for (int i = 0; i < G.nr_pairs; i++)
+	{
+		ostringstream convert;
+		convert << "Patient(" << i << ")";
+		string varname = convert.str();
+		const char* vname = varname.c_str();
+		Patient_Constraint[i] = IloRange(env, 1, 1, vname);
+		Patient_Constraint[i].setLinearCoef(No_Match_Var[i], 1);
+	}
+	for (int arc = 0; arc < cycle_link.size(); arc++)
+	{
+		Patient_Constraint[G.arcs[cycle_link[arc]].endvertex].setLinearCoef(Cycle_var[arc], 1);
+	}
+
+	for (int i = 0; i < G.nr_pairs; i++)
+	{
+		model.add(Patient_Constraint[i]);
+	}
+
+	return Patient_Constraint;
+}
+
+vector<IloRangeArray> Build_Test_Constraint_Unlim(IloEnv & env, IloModel model, const directedgraph & G, const IloNumVarArray & Testvar, const vector<IloNumVarArray>& Cyclevar, const vector<vector<int>>& cycle_link, int nr_scen)
+{
+	vector<IloRangeArray> Test_Constraints(nr_scen);
+
+	for (int scen = 0; scen < nr_scen; scen++)
+	{
+		Test_Constraints[scen] = IloRangeArray(env, G.arcs.size());
+		for (int i = 0; i < G.arcs.size(); i++)
+		{
+			ostringstream convert;
+			convert << "Test(S:" << scen << ",(" << G.arcs[i].startvertex << "," << G.arcs[i].endvertex << "))";
+			string varname = convert.str();
+			const char* vname = varname.c_str();
+			Test_Constraints[scen][i] = IloRange(-Testvar[i] <= 0);
+			Test_Constraints[scen][i].setName(vname);
+		}
+		for (int arc = 0; arc < Cyclevar[scen].getSize(); arc++) // Position
+		{
+			Test_Constraints[scen][cycle_link[scen][arc]].setLinearCoef(Cyclevar[scen][arc], 1);
+		}
+		model.add(Test_Constraints[scen]);
+	}
+
+	return Test_Constraints;
 }

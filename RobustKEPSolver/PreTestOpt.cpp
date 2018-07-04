@@ -18,6 +18,8 @@ void pre_test_main(const configuration & config, directedgraph G)
 		results = EE_Scen(G, config);
 	else if (config.formulation == 3)
 		results = Cycle_Scen(G, config);
+	else if (config.formulation == 4)
+		results = Unlim_Cycle_Scen(G, config);
 	Output_Pre_Test(results, config);
 }
 

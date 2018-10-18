@@ -175,4 +175,6 @@ vector<directedgraph> Generate_Scenarios_Vertex_Tight_Heur(const directedgraph &
 IloRangeArray Generate_Testvar_Flow_Constraints(IloEnv & env, const directedgraph & G, const IloNumVarArray & Testvar);
 IloRangeArray Generate_Testvar_Connecting_Constraints(IloEnv & env, IloModel & model, const directedgraph & G, const IloNumVarArray & Testvar);
 vector<vector<IloNumVarArray>> Generate_TestCycle_Var(IloEnv & env, const directedgraph & G, const configuration & config);
+
 IloRangeArray Generate_Testvar_Cycle_Constraints(IloEnv & env, IloModel & model, const directedgraph & G, const configuration & config, const IloNumVarArray & Testvar, const vector<vector<IloNumVarArray>> & TestCycle_Var);
+void Generate_Testvar_Constraints(IloEnv & env, IloModel & model, const directedgraph & G, const configuration & config, const IloNumVarArray & Testvar, const cycle_variables & TestCycle_Var, const chain_variables & TestChain_Var);

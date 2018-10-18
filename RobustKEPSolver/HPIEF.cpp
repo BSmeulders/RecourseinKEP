@@ -345,7 +345,7 @@ vector<vector<int>> distance_calc_to(const directedgraph & G, const vector<vecto
 chain_variables Generate_Chain_Var(IloEnv & env, directedgraph G, int chainlength)
 {
 	chain_variables c;
-	c.Link_Chainvar_Arc.resize(G.nr_pairs - 1);
+	c.Link_Chainvar_Arc.resize(chainlength);
 
 	// Pre-Processing. For each arc of G, the following function checks whether they can be in a particular position in any feasible solution.
 	vector<vector<int>> arc_position_possible = chain_preproces(G, chainlength);
@@ -394,7 +394,7 @@ vector<vector<int>> chain_preproces(directedgraph G, int chainlength)
 		if (G.arcs[j].startvertex >= G.nr_pairs) // If the startvertex is an NDD, it is possible to use it in position 0.
 			arc_position_possible[0].push_back(1);
 		else
-			arc_position_possible[0].push_back(0);			
+			arc_position_possible[0].push_back(0);	
 	}
 	for (int i = 1; i < chainlength; i++) // For all further positions
 	{

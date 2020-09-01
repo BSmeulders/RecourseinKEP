@@ -525,3 +525,46 @@ bool Ap_compare(tuple<int, int, float> const & t1, tuple<int, int, float> const 
 	if (get<1>(t1) == get<1>(t2)) return get<2>(t1) >= get<2>(t2);
 	return get<1>(t1) > get<2>(t1);
 }
+
+void Omniscient_Solution(configuration & config)
+{
+	directedgraph G = readgraph2(config, config.inputfile);
+	vector<int> solution_value(G.nr_pairs+1);
+	vector<directedgraph> Scenarios;
+	if (config.failure_type == 1)
+	{
+		cout << "Arcs Fail" << endl;
+		if (config.scen_gen == 1)
+		{
+			Scenarios = Generate_Scenarios_Tight(G, config.nr_scenarios); cout << "Tight Scen Generator" << endl;
+		}
+		else
+		{
+			Scenarios = Generate_Scenarios(G, config.nr_scenarios); cout << "Basic Scen Generator" << endl;
+		}
+
+	}
+	else if (config.failure_type == 2)
+	{
+		cout << "Vertices Fail" << endl;
+		Scenarios = Generate_Scenarios_Vertex_Tight(G, config.nr_scenarios);
+	}
+	// Re-number the arcs, or things break in the HPIEF function. We do save the correct arcnumbers to relate results to the arcs in G.
+	for (int i = 0; i < Scenarios.size(); i++)
+	{
+		for (int j = 0; j < Scenarios[i].arcs.size(); j++)
+		{
+			Scenarios[i].arcs[j].arcnumber = j;
+		}
+	}
+	for (int i = 0; i < config.nr_scenarios; i++)
+	{
+		matching_result result = Hybrid_PIEF(Scenarios[i], config.chainlength, config.cyclelength, config);
+		solution_value[result.objective]++;
+	}
+	ofstream output;
+	output.open(config.testvar_output);
+	output << config.inputfile << endl;
+	for (int i = 0; i < solution_value.size(); i++)
+		output << solution_value[i] << "\t";
+}

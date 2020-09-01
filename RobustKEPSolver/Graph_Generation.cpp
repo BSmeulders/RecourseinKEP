@@ -221,7 +221,7 @@ directedgraph readgraph(configuration & config, string filename)
 	ifstream input(filename);
 	if (!input)
 	{
-		cout << "No input file found." << endl;
+		cout << "Inputfile " << filename << " not found" << endl;
 	}
 
 	directedgraph G;
@@ -267,7 +267,7 @@ directedgraph readgraph2(configuration & config, string filename)
 	ifstream input(filename);
 	if (!input)
 	{
-		cout << "No input file found." << endl;
+		cout << "Inputfile " << filename << " not found" << endl;
 	}
 
 	directedgraph G;

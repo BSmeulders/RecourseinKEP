@@ -126,6 +126,7 @@ pre_test_result HPIEF_Scen(directedgraph G, const configuration & config)
 		// At most one outgoing arc for each NDD
 		NDD_Constraint[scen] = Build_NDD_Constraint(env, model, G, Chainvar[scen], Chainvar_arc_link[scen]);
 	}
+	cout << "Scenario Constraints Finished" << endl;
 	// Create Testing Variables and Constraints.
 	IloNumVarArray Testvar = Generate_Testvar(env, G);
 	vector<IloRangeArray> test_constraint = Build_Test_Constraint(env, model, G, Testvar, Cyclevar, Cyclevar_arc_link, Chainvar, Chainvar_arc_link, config.nr_scenarios);
@@ -137,11 +138,19 @@ pre_test_result HPIEF_Scen(directedgraph G, const configuration & config)
 	}
 	else if (config.bender_version == 2)
 	{
+		cout << "New Strong Bender Constraints" << endl;
 		chain_variables Testchain = Generate_Chain_Var(env, G, config.chainlength);
 		cycle_variables Testcycle = Generate_Cycle_Var(env, G, config.cyclelength);
+		cout << "Vars generated for Bender Constraints" << endl;
 		Generate_Testvar_Constraints(env, model, G, config, Testvar, Testcycle, Testchain);
 	}
-
+	else if (config.bender_version == 3)
+	{
+		cout << "Old Strong Bender Constraints" << endl;
+		vector<vector<IloNumVarArray>> Testcycle = Generate_TestCycle_Var(env, G, config);
+		Generate_Testvar_Cycle_Constraints(env, model, G, config, Testvar, Testcycle);
+	}
+	cout << "Bender Constraints Finished" << endl;
 
 	// Test for Benders
 	/*IloRangeArray scen_constraint(env, config.nr_scenarios);
@@ -265,7 +274,13 @@ vector<directedgraph> Generate_Scenarios_Vertex_Tight(const directedgraph & G, i
 	vector<int> succes_per_vertex(G.size);
 	for (int i = 0; i < G.size; i++)
 	{
-		float expected_succes = nr_scen*(1 - G.pairs[i].failprob);
+		float expected_succes;
+		if (i < G.nr_pairs)
+		{
+			expected_succes = nr_scen*(1 - G.pairs[i].failprob);
+		}
+		else
+			expected_succes = nr_scen*(1 - G.ndds[i - G.nr_pairs].failprob);
 		float natural;
 		float remainder = modf(expected_succes, &natural);
 		// Round it to an integer probabilistically.
@@ -298,6 +313,45 @@ vector<directedgraph> Generate_Scenarios_Vertex_Tight(const directedgraph & G, i
 	}
 	return Scenarios;
 }
+
+vector<directedgraph> Generate_Scenarios_Vertex(const directedgraph & G, int nr_scen)
+{
+	ofstream output;
+	//srand(time(NULL));
+	vector<directedgraph> Scenarios(nr_scen);
+	// Get the number of successes for each vertex and the number of scenarios.
+	for (int i = 0; i < nr_scen; i++)
+	{
+		Scenarios[i] = G;
+		Scenarios[i].arcs.resize(0); // Empty out the arcs.
+		vector<bool> vertex_succes(G.size);
+		for (int j = 0; j < G.size; j++)
+		{
+			if (j < G.nr_pairs)
+			{
+				if (rand() % 100 > Scenarios[i].pairs[j].failprob * 100)
+				{
+					vertex_succes[j] = 1;
+				}
+			}
+			else
+			{
+				if (rand() % 100 > Scenarios[i].ndds[j - G.nr_pairs].failprob * 100)
+					vertex_succes[j] = 1;
+			}
+			
+		}
+		for (int j = 0; j < G.arcs.size(); j++)
+		{
+			if (vertex_succes[G.arcs[j].startvertex] == 1 && vertex_succes[G.arcs[j].endvertex] == 1)
+			{
+				Scenarios[i].arcs.push_back(G.arcs[j]);
+			}
+		}
+	}
+	return Scenarios;
+}
+
 
 cycle_variables HPIEF_Scen_Generate_Cycle_Var(IloEnv &env, const directedgraph & G, const configuration & config, int nr_scen)
 {
@@ -945,7 +999,12 @@ void Generate_Testvar_Constraints(IloEnv & env, IloModel & model, const directed
 	IloRangeArray Test_Use_Constraint(env, G.arcs.size());
 	for (int arc = 0; arc < G.arcs.size(); arc++) // We first set up that each arc can not be tested unless we have another variable with negative coefficient in its constraint.
 	{
+		ostringstream convert;
+		convert << "Test_Use_Constraint:" << "(" << G.arcs[arc].startvertex << "," << G.arcs[arc].endvertex << "))";
+		string varname = convert.str();
+		const char* vname = varname.c_str();
 		Test_Use_Constraint[arc] = IloRange(Testvar[arc] <= 0);
+		Test_Use_Constraint[arc].setName(vname);
 	}
 	// Add all the variables corresponding to cycles to the constraints.
 	for (int copy = 0; copy < G.nr_pairs - 1; copy++)
@@ -967,7 +1026,7 @@ void Generate_Testvar_Constraints(IloEnv & env, IloModel & model, const directed
 		}
 	}
 	model.add(Test_Use_Constraint);
-
+	cout << "First Bender Constraint Set" << endl;
 	// The second constraints enforce that a cycle (or chain) variable is only usable if the corresponding arc is tested.
 	vector<vector<IloRangeArray>> Use_Test_Constraint_Cycle(G.nr_pairs - 1); // (nr_pairs - 1) as the first index i the graph copy.
 	for (int copy = 0; copy < G.nr_pairs - 1; copy++)
@@ -995,6 +1054,7 @@ void Generate_Testvar_Constraints(IloEnv & env, IloModel & model, const directed
 		}
 		model.add(Use_Test_Constraint_Chain[position]);
 	}
+	cout << "Second Bender Constraint Set" << endl;
 	// Third set, all cycle variables must have one preceding and/or succeeding cycle arc. (No preceding for position 1, no succeeding for position config.cyclelength)
 	vector<vector<IloRangeArray>> Constraint_Cycle_Succeeding(G.nr_pairs - 1); // (nr_pairs - 1) as the first index i the graph copy.
 	for (int copy = 0; copy < G.nr_pairs - 1; copy++)
@@ -1005,12 +1065,15 @@ void Generate_Testvar_Constraints(IloEnv & env, IloModel & model, const directed
 			Constraint_Cycle_Succeeding[copy][position] = IloRangeArray(env, TestCycle_Var.Cyclevariable[copy][position].getSize());
 			for (int arc = 0; arc < TestCycle_Var.Cyclevariable[copy][position].getSize(); arc++)
 			{
-				Constraint_Cycle_Succeeding[copy][position][arc] = IloRange(TestCycle_Var.Cyclevariable[copy][position][arc] <= 0);
-				int endvertex = G.arcs[TestCycle_Var.Link_Cyclevar_Arc[copy][position][arc]].endvertex;
-				for (int arc2 = 0; arc2 < TestCycle_Var.Cyclevariable[copy][position+1].getSize(); arc2++)
-				{ 
-					if (endvertex == G.arcs[TestCycle_Var.Link_Cyclevar_Arc[copy][position + 1][arc2]].startvertex)
-						Constraint_Cycle_Succeeding[copy][position][arc].setLinearCoef(TestCycle_Var.Cyclevariable[copy][position + 1][arc2], -1);
+				if (G.arcs[TestCycle_Var.Link_Cyclevar_Arc[copy][position][arc]].endvertex != copy) // If the endvertex is the copy vertex, there will be no succeeding arc.
+				{
+					Constraint_Cycle_Succeeding[copy][position][arc] = IloRange(TestCycle_Var.Cyclevariable[copy][position][arc] <= 0);
+					int endvertex = G.arcs[TestCycle_Var.Link_Cyclevar_Arc[copy][position][arc]].endvertex;
+					for (int arc2 = 0; arc2 < TestCycle_Var.Cyclevariable[copy][position + 1].getSize(); arc2++)
+					{
+						if (endvertex == G.arcs[TestCycle_Var.Link_Cyclevar_Arc[copy][position + 1][arc2]].startvertex)
+							Constraint_Cycle_Succeeding[copy][position][arc].setLinearCoef(TestCycle_Var.Cyclevariable[copy][position + 1][arc2], -1);
+					}
 				}
 			}
 			model.add(Constraint_Cycle_Succeeding[copy][position]);
@@ -1036,9 +1099,10 @@ void Generate_Testvar_Constraints(IloEnv & env, IloModel & model, const directed
 			model.add(Constraint_Cycle_Preceding[copy][position]);
 		}
 	}
+		cout << "Third Bender Constraint Set" << endl;
 	// Final set does the same (require preceding variable) but for the chains
 	vector<IloRangeArray> Constraint_Chain_Preceding(config.chainlength);
-	for (int position = 0; position < config.cyclelength-1; position++)
+	for (int position = 0; position < config.chainlength-1; position++)
 	{
 		Constraint_Chain_Preceding[position] = IloRangeArray(env, TestChain_Var.Chainvar[position+1].getSize());
 		for (int arc = 0; arc < TestChain_Var.Chainvar[position+1].getSize(); arc++)

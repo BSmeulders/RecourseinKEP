@@ -2,6 +2,7 @@
 #include "Structures.h"
 #include "Functions.h"
 
+bool Is_already_in_path2(const directedgraph & G, const vector<int> & path, int v);
 
 // Recursion to generate relevant subsets.
 	// For each cycle in the graph
@@ -28,6 +29,99 @@ void Subset_Recourse(configuration & config, directedgraph G)
 	Output_Subset_Recourse(results, config);
 }
 
+void Cycle_Recourse(configuration & config, directedgraph G)
+{
+	time_t start_time;
+	time(&start_time);
+
+	vector<cycle_arcs> subsets = Find_Cycles(G, config);
+	// To get chains to work, we build a new graph. In this new graph, there are arcs from each pair to each NDD. These arcs have weight 0 and a 1 success probability.
+	directedgraph G_extended = Extend_Graph(G);
+	// Next, we find 'cycles' in these graphs, starting from the NDDs.
+	vector<cycle_arcs> chains = Find_ChainCycles(G_extended, config);
+	cout << "There are " << chains.size() << " chains." << endl;
+	subsets.insert(subsets.end(), chains.begin(), chains.end());
+
+	// Sort the vertices.
+	for (int i = 0; i < subsets.size(); i++)
+	{
+		sort(subsets[i].vertices.begin(), subsets[i].vertices.end());
+	}
+	cout << "There are " << subsets.size() << " subsets." << endl;
+	// Put the right arcs for each subset.
+	Subset_Arcs(subsets, G, config);
+
+	if (config.failure_type == 1)
+		Subset_Set_Weights_Arc(subsets, G, config);
+	else if (config.failure_type == 2)
+		Subset_Set_Weights_Vertex(subsets, G, config);
+
+	time_t current_time;
+	time(&current_time);
+	double elapsed_time = difftime(current_time, start_time);
+	double remaining_time = difftime(config.time_limit, elapsed_time);
+	cout << "There are " << subsets.size() << " subsets." << endl;
+	pre_test_result results = Subset_MIP(subsets, G, config, remaining_time, start_time);
+	Output_Subset_Recourse(results, config);
+}
+
+
+void No_Recourse(configuration & config, directedgraph G)
+{
+	// All kinds of bad practices here. ONLY works for weight 1 arcs and equal failure rates across all vertices.
+	
+	time_t start_time;
+	time(&start_time);
+
+	vector<cycle_arcs> subsets = Find_Cycles(G, config);
+
+	for (int i = 0; i < subsets.size(); i++)
+	{
+		for (int j = 0; j < subsets[i].vertices.size(); j++)
+			subsets[i].weight = subsets[i].weight*(1-G.pairs[subsets[i].vertices[j]].failprob);
+	}
+	// To get chains to work, we build a new graph. In this new graph, there are arcs from each pair to each NDD. These arcs have weight 0 and a 1 success probability.
+	directedgraph G_extended = Extend_Graph(G);
+	// Next, we find 'cycles' in these graphs, starting from the NDDs.
+	vector<cycle_arcs> chains = Find_ChainCycles(G_extended, config);
+	for (int i = 0; i < chains.size(); i++)
+	{
+		double succesprob = (1-G.pairs[chains[i].vertices[1]].failprob)*(1-G.ndds[chains[i].vertices[0] - G.nr_pairs].failprob);
+		chains[i].weight = 1*succesprob;
+		for (int j = 2; j < chains[i].vertices.size(); j++)
+		{
+			succesprob = succesprob*(1 - G.pairs[chains[i].vertices[j]].failprob);
+			chains[i].weight += succesprob;
+		}	
+	}
+	cout << "There are " << chains.size() << " chains." << endl;
+	subsets.insert(subsets.end(), chains.begin(), chains.end());
+
+	// Sort the vertices.
+	for (int i = 0; i < subsets.size(); i++)
+	{
+		sort(subsets[i].vertices.begin(), subsets[i].vertices.end());
+	}
+	cout << "There are " << subsets.size() << " subsets." << endl;
+	/*for (int i = 0; i < subsets.size(); i++)
+	{
+		cout << "Weight = " << subsets[i].weight << "\t";
+		for (int j = 0; j < subsets[i].vertices.size(); j++)
+			cout << subsets[i].vertices[j] << "\t";
+		for (int j = 0; j < subsets[i].arcs.size(); j++)
+			cout << "(" << G_extended.arcs[subsets[i].arcs[j]].startvertex << "," << G_extended.arcs[subsets[i].arcs[j]].endvertex << ") \t";
+		cout << endl;
+	}
+	system("PAUSE");*/
+	time_t current_time;
+	time(&current_time);
+	double elapsed_time = difftime(current_time, start_time);
+	double remaining_time = difftime(config.time_limit, elapsed_time);
+	cout << "There are " << subsets.size() << " subsets." << endl;
+	pre_test_result results = Subset_MIP(subsets, G, config, remaining_time, start_time);
+	Output_Subset_Recourse(results, config);
+}
+
 pre_test_result Subset_MIP(const vector<cycle_arcs> & subsets, const directedgraph & G, const configuration & config, double remaining_time, const time_t & start_time)
 {
 	IloEnv env;
@@ -35,10 +129,8 @@ pre_test_result Subset_MIP(const vector<cycle_arcs> & subsets, const directedgra
 	IloNumVarArray subsetvar(env, subsets.size(), subsets.size(), ILOINT);
 	for (int i = 0; i < subsets.size(); i++)
 		subsetvar[i] = IloNumVar(env, 0, 1, ILOINT);
-
 	IloRangeArray vertex_cons = Build_Vertex_Constraint_Subset_MIP(env, G, subsetvar, subsets);
 	MIP.add(vertex_cons);
-
 	IloObjective obj = IloMaximize(env);
 	for (int i = 0; i < subsets.size(); i++)
 	{
@@ -90,8 +182,8 @@ void Output_Subset_Recourse(const pre_test_result & results, const configuration
 
 IloRangeArray Build_Vertex_Constraint_Subset_MIP(IloEnv & env, const directedgraph & G, IloNumVarArray & subsetvar, const vector<cycle_arcs>& subsets)
 {
-	IloRangeArray Vertex_Constraint(env, G.nr_pairs);
-	for (int i = 0; i < G.nr_pairs; i++)
+	IloRangeArray Vertex_Constraint(env, G.size);
+	for (int i = 0; i < G.size; i++)
 	{
 		IloExpr expr(env);
 		Vertex_Constraint[i] = IloRange(expr <= 1);
@@ -109,12 +201,21 @@ IloRangeArray Build_Vertex_Constraint_Subset_MIP(IloEnv & env, const directedgra
 vector<cycle_arcs> Relevant_Subsets(const directedgraph & G, const configuration & config)
 {
 	// Enumeration of relevant subsets, based on Algorithm 2 in Klimentova et al. (2016).
+	// First we identify all cycles in the graph. 
+	// Next, these are added together to form subsets.
 	// Note that K.e.a. does not have any protection from replicating relevant subsets.
 	// We add this by ordering the cycles and only adding cycles in ascending order. (Adding 2 to 1 is possible, adding 1 to 2 isn't).
 	// One exception is if a lower ordered cycle could not be added previously (through no overlapping vertices). If this happens, we re-order that cycle at the end of the list.
 
 	vector<cycle_arcs> cycles = Find_Cycles(G, config);
 	cout << "There are " << cycles.size() << " cycles." << endl;
+	// To get chains to work, we build a new graph. In this new graph, there are arcs from each pair to each NDD. These arcs have weight 0 and a 1 success probability.
+	directedgraph G_extended = Extend_Graph(G);
+	// Next, we find 'cycles' in these graphs, starting from the NDDs.
+	vector<cycle_arcs> chains = Find_ChainCycles(G_extended, config);
+	cout << "There are " << chains.size() << " chains." << endl;
+	cycles.insert(cycles.end(), chains.begin(), chains.end());
+
 	vector<cycle_arcs> subsets = cycles;
 	for (int i = 0; i < cycles.size(); i++)
 	{
@@ -148,7 +249,6 @@ vector<cycle_arcs> Relevant_Subsets(const directedgraph & G, const configuration
 	// Put the right arcs for each subset.
 	Subset_Arcs(subsets, G, config);
 	return subsets;
-
 }
 
 void Relevant_Subsets_Recursion(vector<cycle_arcs>& accepted, cycle_arcs current, queue<cycle_arcs> candidates, int max_subset_size)
@@ -229,19 +329,17 @@ void Subset_Arcs(vector<cycle_arcs>& subsets, const directedgraph & G, const con
 		subsets[i].arcs.resize(0); // First clean it out.
 		for (int j = 0; j < subsets[i].vertices.size(); j++) // For each vertex in the subset
 		{
-			for (int k = G.first_vertex_arc[subsets[i].vertices[j]]; k < G.first_vertex_arc[subsets[i].vertices[j] + 1]; k++) // Go through the arcs for which it is startvertex
+			for (int k = 0; k < G.arcs.size(); k++) // Go through the arcs for which it is startvertex
 			{
-				for (int l = 0; l < subsets[i].vertices.size(); l++) // And for each other vertex in the subset
+				if (G.arcs[k].startvertex == subsets[i].vertices[j])
 				{
-					if (G.arcs[k].endvertex == subsets[i].vertices[l]) // Check whether it is the endvertex
+					for (int l = 0; l < subsets[i].vertices.size(); l++) // And for each other vertex in the subset
 					{
-						bool isPresent = false;
-						for (int m = 0; m < subsets[i].arcs.size(); ++m) {
-							if (subsets[i].arcs[m] == k) isPresent = true;
+						if (G.arcs[k].endvertex == subsets[i].vertices[l]) // Check whether it is the endvertex
+						{
+							 subsets[i].arcs.push_back(k); // If it is, add it to the arcs of the subset.
 						}
-						if (!isPresent) subsets[i].arcs.push_back(k); // If it is, add it to the arcs of the subset.
 					}
-
 				}
 			}
 		}
@@ -267,7 +365,7 @@ void Subset_Set_Weights_Arc(vector<cycle_arcs>& subsets, const directedgraph & G
 void Subset_Set_Weights_Vertex(vector<cycle_arcs>& subsets, const directedgraph & G, const configuration & config)
 {
 	int count = 0;
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i = 0; i < subsets.size(); i++)
 	{
 		// Build subset graph
@@ -276,7 +374,10 @@ void Subset_Set_Weights_Vertex(vector<cycle_arcs>& subsets, const directedgraph 
 		subsets[i].weight = Subset_Set_Weights_Vertex_Root(G_sub, config);
 		count++;
 		if (count % 100 == 0)
+		{
 			cout << count << endl;
+		}
+			
 	}
 }
 void Subset_Set_Weights_Vertex_Verbose(vector<cycle_arcs>& subsets, const directedgraph & G, const configuration & config)
@@ -395,6 +496,9 @@ float Subset_Set_Weights_Vertex_Root(const directedgraph & G, const configuratio
 	float weight;
 	// We first find all the cycles
 	vector<cycle_arcs> cycles = Find_Cycles(G, config);
+	vector<cycle_arcs> chains = Find_ChainCycles(G, config);
+	cycles.insert(cycles.end(), chains.begin(), chains.end());
+
 	// We set up 2 LPs, one for the upper bound (assume all arcs not yet set will succeed) and one for the LB (assume all arcs not yet set will fail).
 	IloEnv env;
 	IloModel Model(env);
@@ -447,12 +551,21 @@ float Subset_Set_Weights_Vertex_Root(const directedgraph & G, const configuratio
 	int depth = 0;
 	if (CPLEX_Solution > 0)
 	{
+		// Get the failprobability. First we need to check whether it is a pair or NDD.
+		float failprob;
+		{
+			if (vertex_fix >= G.nr_pairs)
+				failprob = G.ndds[vertex_fix - G.nr_pairs].failprob;
+			else
+				failprob = G.pairs[vertex_fix].failprob;
+		}
+
 		// First assume the vertex is a succes
 		// We go down one level and branch again on another arc used in the solution.
-		weight = (1 - G.pairs[vertex_fix].failprob)*Subset_Set_Weights_Vertex_Recursion(env, G, CPLEX, vertex_use, vertex_cons, fixed, CPLEX_Solution, 1, depth);
+		weight = (1 - failprob)*Subset_Set_Weights_Vertex_Recursion(env, G, CPLEX, vertex_use, vertex_cons, fixed, CPLEX_Solution, 1, depth);
 		// Next assume the vertex fails.
 		vertex_cons[vertex_fix].setUB(0);
-		weight = weight + G.pairs[vertex_fix].failprob*Subset_Set_Weights_Vertex_Recursion(env, G, CPLEX, vertex_use, vertex_cons, fixed, CPLEX_Solution, 0, depth);
+		weight = weight + failprob*Subset_Set_Weights_Vertex_Recursion(env, G, CPLEX, vertex_use, vertex_cons, fixed, CPLEX_Solution, 0, depth);
 		vertex_cons[vertex_fix].setUB(1);
 	}
 	env.end();
@@ -527,19 +640,27 @@ float Subset_Set_Weights_Vertex_Recursion(IloEnv & env, const directedgraph & G,
 	}
 	if (new_fix == 1)
 	{
+		// Get the failprobability. First we need to check whether it is a pair or NDD.
+		float failprob;
+		{
+			if (vertex_fix >= G.nr_pairs)
+				failprob = G.ndds[vertex_fix - G.nr_pairs].failprob;
+			else
+				failprob = G.pairs[vertex_fix].failprob;
+		}
+		
 		// First assume the vertex is a succes
 		// We go down one level and branch again on another arc used in the solution.
-		weight = (1 - G.pairs[vertex_fix].failprob)*Subset_Set_Weights_Vertex_Recursion(env, G, CPLEX, vertex_use, vertex_cons, fixed, Solution, 1, depth);
+		weight = (1 - failprob)*Subset_Set_Weights_Vertex_Recursion(env, G, CPLEX, vertex_use, vertex_cons, fixed, Solution, 1, depth);
 // Next assume the vertex fails.
 		vertex_cons[vertex_fix].setUB(0);
-		weight = weight + G.pairs[vertex_fix].failprob*Subset_Set_Weights_Vertex_Recursion(env, G, CPLEX, vertex_use, vertex_cons, fixed, Solution, 0, depth);
+		weight = weight + failprob*Subset_Set_Weights_Vertex_Recursion(env, G, CPLEX, vertex_use, vertex_cons, fixed, Solution, 0, depth);
 		vertex_cons[vertex_fix].setUB(1);
 	}
 	else // If there are no more arcs to fix, the weight is equal to the last CPLEX Solution (all arcs used in this solution have been fixed to success).
 	{
 		weight = Solution;
 	}
-
 	return weight;
 }
 
@@ -684,16 +805,21 @@ float Subset_Set_Weights_Vertex_Root_Verbose(const directedgraph & G, const conf
 	deque<bool> suc_fail;
 	if (CPLEX_Solution > 0)
 	{
+		// Get the failprobability. First we need to check whether it is a pair or NDD.
+		float failprob;
+		{
+			if (vertex_fix >= G.nr_pairs)
+				failprob = G.ndds[vertex_fix - G.nr_pairs].failprob;
+			else
+				failprob = G.pairs[vertex_fix].failprob;
+		}
+
 		// First assume the vertex is a succes
 		// We go down one level and branch again on another arc used in the solution.
-		suc_fail.push_back(1);
-		weight = (1 - G.pairs[vertex_fix].failprob)*Subset_Set_Weights_Vertex_Recursion_Verbose(env, G, CPLEX, vertex_use, vertex_cons, fixed, CPLEX_Solution, 1, depth, suc_fail);
-		suc_fail.pop_back();
-		suc_fail.push_back(0);
+		weight = (1 - failprob)*Subset_Set_Weights_Vertex_Recursion_Verbose(env, G, CPLEX, vertex_use, vertex_cons, fixed, CPLEX_Solution, 1, depth, suc_fail);
 		// Next assume the vertex fails.
 		vertex_cons[vertex_fix].setUB(0);
-		weight = weight + G.pairs[vertex_fix].failprob*Subset_Set_Weights_Vertex_Recursion_Verbose(env, G, CPLEX, vertex_use, vertex_cons, fixed, CPLEX_Solution, 0, depth, suc_fail);
-		suc_fail.pop_back();
+		weight = weight + failprob*Subset_Set_Weights_Vertex_Recursion_Verbose(env, G, CPLEX, vertex_use, vertex_cons, fixed, CPLEX_Solution, 0, depth, suc_fail);
 		vertex_cons[vertex_fix].setUB(1);
 	}
 	env.end();
@@ -786,16 +912,21 @@ float Subset_Set_Weights_Vertex_Recursion_Verbose(IloEnv & env, const directedgr
 	}
 	if (new_fix == 1)
 	{
+		// Get the failprobability. First we need to check whether it is a pair or NDD.
+		float failprob;
+		{
+			if (vertex_fix >= G.nr_pairs)
+				failprob = G.ndds[vertex_fix - G.nr_pairs].failprob;
+			else
+				failprob = G.pairs[vertex_fix].failprob;
+		}
+
 		// First assume the vertex is a succes
 		// We go down one level and branch again on another arc used in the solution.
-		suc_fail.push_back(1);
-		weight = (1 - G.pairs[vertex_fix].failprob)*Subset_Set_Weights_Vertex_Recursion_Verbose(env, G, CPLEX, vertex_use, vertex_cons, fixed, Solution, 1, depth, suc_fail);
-		suc_fail.pop_back();
+		weight = (1 - failprob)*Subset_Set_Weights_Vertex_Recursion_Verbose(env, G, CPLEX, vertex_use, vertex_cons, fixed, Solution, 1, depth, suc_fail);
 		// Next assume the vertex fails.
-		suc_fail.push_back(0);
 		vertex_cons[vertex_fix].setUB(0);
-		weight = weight + G.pairs[vertex_fix].failprob*Subset_Set_Weights_Vertex_Recursion_Verbose(env, G, CPLEX, vertex_use, vertex_cons, fixed, Solution, 0, depth, suc_fail);
-		suc_fail.pop_back();
+		weight = weight + failprob*Subset_Set_Weights_Vertex_Recursion_Verbose(env, G, CPLEX, vertex_use, vertex_cons, fixed, Solution, 0, depth, suc_fail);
 		vertex_cons[vertex_fix].setUB(1);
 	}
 	else // If there are no more arcs to fix, the weight is equal to the last CPLEX Solution (all arcs used in this solution have been fixed to success).
@@ -808,8 +939,8 @@ float Subset_Set_Weights_Vertex_Recursion_Verbose(IloEnv & env, const directedgr
 
 IloRangeArray Build_Vertex_Constraint_SSWR(IloEnv & env, const directedgraph & G, IloNumVarArray & cyclevar, const vector<cycle_arcs> & cycles)
 {
-	IloRangeArray Vertex_Constraint(env, G.nr_pairs);
-	for (int i = 0; i < G.nr_pairs; i++)
+	IloRangeArray Vertex_Constraint(env, G.size);
+	for (int i = 0; i < G.size; i++)
 	{
 		IloExpr expr(env);
 		Vertex_Constraint[i] = IloRange(expr <= 1);
@@ -844,13 +975,21 @@ IloRangeArray Build_Cycle_Constraint_SSWR(IloEnv & env, const directedgraph & G,
 directedgraph Subset_Graph(const cycle_arcs & subset, const directedgraph & G)
 {
 	directedgraph G_sub;
+	vector<int> subset_vertices = subset.vertices;
+	sort(subset_vertices.begin(), subset_vertices.end());
 	G_sub.size = subset.vertices.size();
-	G_sub.nr_pairs = G_sub.size;
-	vector<int> vertex_switch(G.nr_pairs); // For each vertex in the original graph, we save in which position it occurs, in the list of vertices in the subset.
-	for (int i = 0; i < subset.vertices.size(); i++)
+	G_sub.nr_pairs = 0;
+	// Count the number of pairs
+	for (int vertex = 0; vertex < subset.vertices.size(); vertex++) { if (subset.vertices[vertex] < G.nr_pairs) G_sub.nr_pairs++; }
+	G_sub.nr_ndd = G_sub.size - G_sub.nr_pairs;
+	vector<int> vertex_switch(G.size); // For each vertex in the original graph, we save in which position it occurs, in the list of vertices in the subset.
+	for (int i = 0; i < subset_vertices.size(); i++)
 	{
-		vertex_switch[subset.vertices[i]] = i;
-		G_sub.pairs.push_back(G.pairs[subset.vertices[i]]);
+		vertex_switch[subset_vertices[i]] = i;
+		if (subset_vertices[i] < G.nr_pairs)
+			G_sub.pairs.push_back(G.pairs[subset_vertices[i]]);
+		else
+			G_sub.ndds.push_back(G.ndds[subset_vertices[i] - G.nr_pairs]);
 	}
 	for (int i = 0; i < subset.arcs.size(); i++)
 	{
@@ -858,7 +997,19 @@ directedgraph Subset_Graph(const cycle_arcs & subset, const directedgraph & G)
 		G_sub.arcs[i].startvertex = vertex_switch[G_sub.arcs[i].startvertex];
 		G_sub.arcs[i].endvertex = vertex_switch[G_sub.arcs[i].endvertex];
 	}
-
+	// Add additional 'return arcs'.
+	for (int NDD = G_sub.nr_pairs; NDD < G_sub.size; NDD++)
+	{
+		for (int pairs = 0; pairs < G_sub.nr_pairs; pairs++)
+		{
+			directedarc arc;
+			arc.weight = 0;
+			arc.failprob = 0;
+			arc.startvertex = pairs;
+			arc.endvertex = NDD;
+			G_sub.arcs.push_back(arc);
+		}
+	}
 	sort(G_sub.arcs.begin(), G_sub.arcs.end(), arcsort);
 	Find_First_arc(G_sub);
 	return G_sub;
@@ -1025,3 +1176,96 @@ bool arcsort(directedarc a, directedarc b)
 
 	return afirst;
 }
+
+directedgraph Extend_Graph(const directedgraph & G)
+{
+	directedgraph G_ext = G;
+	int arcnumber = G.arcs.size();
+	for (int NDD = G.nr_pairs; NDD < G.size; NDD++ )
+	{
+		for (int pairs = 0; pairs < G.nr_pairs; pairs++)
+		{
+			directedarc arc;
+			arc.arcnumber = arcnumber;
+			arcnumber++;
+			arc.failprob = 0;
+			arc.weight = 0;
+			arc.startvertex = pairs;
+			arc.endvertex = NDD;
+			G_ext.arcs.push_back(arc);
+		}
+	}
+	return G_ext;
+}
+
+vector<cycle_arcs> Find_ChainCycles(const directedgraph & G, const configuration & config)
+{
+	vector<cycle_arcs> chains;
+
+	for (int NDD = G.nr_pairs; NDD < G.size; NDD++)
+	{
+		queue<vector<int>> paths;
+		for(int arc = 0; arc < G.arcs.size(); arc++)
+		{
+			if (G.arcs[arc].startvertex == NDD)
+			{
+				vector<int> init_vector;
+				init_vector.push_back(arc);
+				paths.push(init_vector);
+			}
+		}
+		while (!paths.empty())
+		{
+			vector<int> path_vector = paths.front(); // Get the first path out and delete it from the queue.
+			paths.pop();
+
+			int endvertex = G.arcs[path_vector[path_vector.size() - 1]].endvertex;
+			for (int arc = 0; arc < G.arcs.size(); arc++)
+			{
+				if (G.arcs[arc].startvertex == endvertex)
+				{
+					if (G.arcs[arc].endvertex == NDD) // If we return to the NDD
+					{
+						cycle_arcs temp_cycle;
+						temp_cycle.arcs = path_vector;
+						temp_cycle.arcs.push_back(arc); 
+						temp_cycle.weight = 0;
+						chains.push_back(temp_cycle);
+					}
+					else if (!Is_already_in_path2(G, path_vector, G.arcs[arc].endvertex) && path_vector.size() < config.chainlength)
+					{
+						vector<int> new_path = path_vector;
+						new_path.push_back(arc);
+						paths.push(new_path);
+					}
+				}
+			}
+
+		}
+	}
+	for (int i = 0; i < chains.size(); i++)
+	{
+		for (int j = 0; j < chains[i].arcs.size(); j++)
+		{
+			chains[i].vertices.push_back(G.arcs[chains[i].arcs[j]].startvertex);
+			chains[i].weight = chains[i].weight + G.arcs[chains[i].arcs[j]].weight;
+		}
+		// Remove final dummy arc.
+		chains[i].arcs.pop_back();
+	}
+	
+
+	return chains;
+}
+
+bool Is_already_in_path2(const directedgraph & G, const vector<int> & path, int v) {
+	bool inPath = false;
+	for (int i = 0; i < path.size(); ++i) {
+		if (G.arcs[path[i]].startvertex == v || G.arcs[path[i]].endvertex == v) {
+			inPath = true;
+			break;
+		}
+	}
+	return inPath;
+}
+

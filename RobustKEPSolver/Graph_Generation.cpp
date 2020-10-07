@@ -1,4 +1,3 @@
-
 #include "stdafx.h"
 #include "Structures.h"
 #include "Functions.h"
@@ -65,7 +64,7 @@ directedgraph saidman(configuration & config)
 	G.size = G.nr_ndd + G.nr_pairs;
 
 
-	//srand(time(NULL));
+	srand(time(NULL));
 
 	vector<patient_donor_pair> pairs(G.nr_pairs);
 	vector<int> NDD(G.nr_ndd);
@@ -73,6 +72,7 @@ directedgraph saidman(configuration & config)
 	for (int i = 0; i < G.nr_pairs; i++)
 	{
 		bool flag = 1;
+		cout << i << endl;
 		while (flag == 1) // We generate a donor and patient. If they are compatible, the flag stays at 1. If they are compatible,
 			// they would not be added to the KEP pool, so we generate a new patient-donor pair to take their place.
 			// If at any point we find they are not compatible, the flag is set to 0.
@@ -113,6 +113,7 @@ directedgraph saidman(configuration & config)
 				break;
 
 			}
+			else
 			{
 				// If there is a compatible blood type, there is still the possibility of positive cross-match.
 				// Check whether there is a positive cross-match. If there is, break the loop. (low = 95%, medium 45%, high 10%)
@@ -147,7 +148,6 @@ directedgraph saidman(configuration & config)
 				}*/
 			}
 		}
-		cout << pairs[i].donor_bloodtype << "\t" << pairs[i].patient_bloodtype << "\t" << pairs[i].PRA_level << endl;
 	}
 	// Loop to determine blood type of NDD.
 	for (int i = 0; i < G.nr_ndd; i++)
@@ -168,6 +168,15 @@ directedgraph saidman(configuration & config)
 	output.open(config.graph_output);
 	output << "Nr_Pairs = " << G.nr_pairs << endl;
 	output << "Nr_NDD = " << G.nr_ndd << endl;
+
+	for (int pair = 0; pair < G.nr_pairs; pair++)
+	{
+		output << pair << "\t" << config.failprob << endl;
+	}
+	for (int NDD = G.nr_pairs; NDD < G.nr_pairs + G.nr_ndd; NDD++)
+	{
+		output << NDD << "\t" << config.failprob << endl;
+	}
 
 	// Arcs between donor-patient pairs.
 	for (int i = 0; i < G.nr_pairs; i++)

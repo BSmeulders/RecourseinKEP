@@ -794,7 +794,6 @@ pre_test_result Unlim_Cycle_Scen(directedgraph G, const configuration & config)
 	{
 		CPLEX.setParam(IloCplex::Param::Benders::Strategy, IloCplex::BendersFull);
 	}
-	CPLEX.exportModel("aUnlimCycleRelax.lp");
 	CPLEX.solve();
 
 	pre_test_result results;

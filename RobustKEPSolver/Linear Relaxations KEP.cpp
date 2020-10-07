@@ -44,7 +44,7 @@ matching_result Cycle_Formulation_Linear(directedgraph G, configuration & config
 	Cycle_Linear.add(vertex_cons);
 
 	IloCplex CPLEX(Cycle_Linear);
-	CPLEX.exportModel("Cycle_Linear.lp");
+	//CPLEX.exportModel("Cycle_Linear.lp");
 	CPLEX.solve();
 
 	matching_result results;
@@ -84,7 +84,7 @@ matching_result Cycle_Formulation_Integer(directedgraph G, configuration & confi
 	Cycle_Linear.add(vertex_cons);
 
 	IloCplex CPLEX(Cycle_Linear);
-	CPLEX.exportModel("Cycle_Linear.lp");
+	//CPLEX.exportModel("Cycle_Linear.lp");
 	CPLEX.solve();
 
 	matching_result results;

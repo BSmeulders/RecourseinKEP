@@ -52,7 +52,7 @@ matching_result PICEF(directedgraph G, configuration & config)
 
 
 	IloCplex PICEF_CPLEX(PICEF);
-	PICEF_CPLEX.exportModel("PICEF.lp");
+	//PICEF_CPLEX.exportModel("PICEF.lp");
 	PICEF_CPLEX.solve();
 
 	matching_result results;

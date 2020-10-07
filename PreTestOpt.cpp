@@ -10,40 +10,35 @@ pre_test_result Pre_Test_EE(directedgraph G, configuration & config);
 using namespace std;
 
 ILOUSERCUTCALLBACK1(IntegralSolCut, IloExpr, obj_expr) {
-	IloNum obj_value = getObjValue();
+/*	IloNum obj_value = getObjValue();
 	IloNum rhs = 0;
 	if (obj_value > floor(obj_value))
 	{
 		rhs = floor(obj_value);
 		addLocal(obj_expr <= rhs).end();
-	}
+	}*/
 }
 
-ILOMIPINFOCALLBACK5(writeincumbentcallback, const configuration&, config, time_t, start_time, const directedgraph&, G, IloNumVarArray, Testvar, IloNum, Lastincumbent)
+ILOINCUMBENTCALLBACK4(writeincumbentcallback, const configuration&, config, time_t, start_time, const directedgraph &, G, IloNumVarArray, Testvar)
 {
-	if (hasIncumbent())
+	cout << "New Incumbent" << endl;
+	/*pre_test_result results;
+	results.objective_value = getObjValue() / config.nr_scenarios;
+	time_t current_time;
+	std::time(&current_time);
+	results.computation_time = difftime(current_time, start_time);
+
+	for (int i = 0; i < G.arcs.size(); i++)
 	{
-		if (getIncumbentObjValue() - Lastincumbent > 0.01)
+		if (getValue(Testvar[i]) > 0.99)
 		{
-			cout << "New Incumbent" << endl;
-			Lastincumbent = getIncumbentObjValue();
-			pre_test_result results;
-			results.objective_value = getIncumbentObjValue() / config.nr_scenarios;
-			time_t current_time;
-			std::time(&current_time);
-			results.computation_time = difftime(current_time, start_time);
-			for (int i = 0; i < G.arcs.size(); i++)
-			{
-				if (getIncumbentValue(Testvar[i]) > 0.99)
-				{
-					results.tested_arcs.push_back(G.arcs[i]);
-				}
-			}
-			cout << "Off to write to file" << endl;
-			Output_Pre_Test(results, config);
+			results.tested_arcs.push_back(G.arcs[i]);
 		}
-	}	
+	}
+	cout << "Off to write to file" << endl;
+	Output_Pre_Test(results, config);*/
 }
+
 
 void pre_test_main(const configuration & config, directedgraph G)
 {
@@ -207,27 +202,15 @@ pre_test_result HPIEF_Scen(directedgraph G, const configuration & config)
 	}*/
 
 	IloCplex CPLEX(model);
-	CPLEX.setParam(IloCplex::Param::TimeLimit, config.time_limit);
-	//CPLEX.exportModel("model.lp");
+	CPLEX.setParam(IloCplex::TiLim, config.time_limit);
+	CPLEX.setParam(IloCplex::TreLim, config.memory_limit);
 	if(config.solver == 4)
 		CPLEX.setParam(IloCplex::Param::Benders::Strategy, IloCplex::BendersFull);
-
-	std::cout << "Adding to model" << endl;
-	IloNum rhs = 10000;
-	model.add(obj_expr <= rhs);
-	CPLEX.exportModel("00test.lp");
-	if (config.solver == 3 /*|| config.solver == 4*/)
-	{
-		//CPLEX.use(IntegralSolCut(env, obj_expr)); // Does not appear to work in combination with BendersFull strategy.
-		//CPLEX.setParam(IloCplex::ParallelMode, -1);
-		//CPLEX.setParam(IloCplex::Threads, 8);
-	}
+	CPLEX.use(IntegralSolCut(env, obj_expr));
 	cout << "Adding callback" << endl;
-	IloNum Incumbentvalue = 0;
-	CPLEX.use(writeincumbentcallback(env, config, start_time, G, Testvar, Incumbentvalue));
+	//CPLEX.use(writeincumbentcallback(env, config, start_time, G, Testvar));
 	cout << "Added callback" << endl;
 
-	std::cout << "Added to model" << endl;
 	CPLEX.solve();
 	std::cout << "Solved model" << endl;
 	pre_test_result results;
@@ -329,7 +312,6 @@ vector<directedgraph> Generate_Scenarios_Vertex_Tight(const directedgraph & G, i
 		else
 			remainder = 0;
 		succes_per_vertex[i] = natural + remainder;
-		cout << i << " = " << succes_per_vertex[i] << endl;
 	}
 	for (int i = 0; i < nr_scen; i++)
 	{
@@ -720,7 +702,6 @@ void Pre_Test_Float(directedgraph G, const configuration & config)
 	IloRange Max_Test_Constraint = Build_Max_Test_Constraint(env, model, Testvar, config.max_test);
 
 	IloCplex CPLEX(model);
-	CPLEX.exportModel("Floatmodel.lp");
 	CPLEX.setParam(IloCplex::TiLim, config.time_limit);
 	CPLEX.solve();
 

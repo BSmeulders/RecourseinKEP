@@ -265,7 +265,7 @@ pre_test_result Cycle_Use_IP(configuration & config, const directedgraph & G, co
 	IloCplex CPLEX(Model);
 
 	CPLEX.solve();
-	CPLEX.exportModel("Cycle_Use.lp");
+	//CPLEX.exportModel("Cycle_Use.lp");
 	CPLEX.writeSolution("Cycle_Use.sol");
 
 	pre_test_result results;

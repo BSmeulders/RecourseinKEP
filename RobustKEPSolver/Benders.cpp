@@ -95,8 +95,17 @@ pre_test_result Cycle_Scen(directedgraph G, const configuration & config)
 	}
 	else if (config.bender_version == 2)
 	{
-		vector<vector<IloNumVarArray>> Testcycle_var = Generate_TestCycle_Var(env, G, config);
-		Generate_Testvar_Cycle_Constraints(env, model, G, config, Testvar, Testcycle_var);
+		cout << "New Strong Bender Constraints" << endl;
+		chain_variables Testchain = Generate_Chain_Var(env, G, config.chainlength);
+		cycle_variables Testcycle = Generate_Cycle_Var(env, G, config.cyclelength);
+		cout << "Vars generated for Bender Constraints" << endl;
+		Generate_Testvar_Constraints(env, model, G, config, Testvar, Testcycle, Testchain);
+	}
+	else if (config.bender_version == 3)
+	{
+		cout << "Old Strong Bender Constraints" << endl;
+		vector<vector<IloNumVarArray>> Testcycle = Generate_TestCycle_Var(env, G, config);
+		Generate_Testvar_Cycle_Constraints(env, model, G, config, Testvar, Testcycle);
 	}
 
 
@@ -110,6 +119,7 @@ pre_test_result Cycle_Scen(directedgraph G, const configuration & config)
 	pre_test_result results;
 	results.objective_value = CPLEX.getObjValue() / config.nr_scenarios;
 	cout << results.objective_value << endl;
+	CPLEX.exportModel("CycleForm-Model.lp");
 
 	time_t current_time;
 	time(&current_time);
@@ -215,8 +225,17 @@ pre_test_result EE_Scen(directedgraph G, const configuration &config)
 	}
 	else if (config.bender_version == 2)
 	{
-		vector<vector<IloNumVarArray>> Testcycle_var = Generate_TestCycle_Var(env, G, config);
-		Generate_Testvar_Cycle_Constraints(env, model, G, config, Testvar, Testcycle_var);
+		cout << "New Strong Bender Constraints" << endl;
+		chain_variables Testchain = Generate_Chain_Var(env, G, config.chainlength);
+		cycle_variables Testcycle = Generate_Cycle_Var(env, G, config.cyclelength);
+		cout << "Vars generated for Bender Constraints" << endl;
+		Generate_Testvar_Constraints(env, model, G, config, Testvar, Testcycle, Testchain);
+	}
+	else if (config.bender_version == 3)
+	{
+		cout << "Old Strong Bender Constraints" << endl;
+		vector<vector<IloNumVarArray>> Testcycle = Generate_TestCycle_Var(env, G, config);
+		Generate_Testvar_Cycle_Constraints(env, model, G, config, Testvar, Testcycle);
 	}
 
 
@@ -229,7 +248,7 @@ pre_test_result EE_Scen(directedgraph G, const configuration &config)
 		CPLEX.setParam(IloCplex::Param::Benders::Strategy, IloCplex::BendersFull);
 	}
 	CPLEX.solve();
-
+	CPLEX.exportModel("EE-model.lp");
 	pre_test_result results;
 	results.objective_value = CPLEX.getObjValue() / config.nr_scenarios;
 	cout << results.objective_value << endl;

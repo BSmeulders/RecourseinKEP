@@ -21,6 +21,8 @@ directedgraph readgraph2(configuration & config, string filename);
 void Choose_Solver(configuration & config, directedgraph & G);
 void pre_test_main(const configuration & config, directedgraph G);
 void Subset_Recourse(configuration & config, directedgraph G);
+void Cycle_Recourse(configuration & config, directedgraph G);
+void No_Recourse(configuration & config, directedgraph G);
 void Deterministic_KEP(configuration & config, directedgraph G);
 pre_test_result HPIEF_Scen(directedgraph G, const configuration & config); // Pre_test outputs a new graph, using only the arcs chosen in the optimization.
 pre_test_result EE_Scen(directedgraph G, const configuration & config);
@@ -35,6 +37,7 @@ matching_result Cycle_Formulation_Integer(directedgraph G, configuration & confi
 // Pre-Testing Optimization Functions
 vector<directedgraph> Generate_Scenarios(const directedgraph &G, int nr_scen);
 vector<directedgraph> Generate_Scenarios_Tight(const directedgraph & G, int nr_scen);
+vector<directedgraph> Generate_Scenarios_Vertex(const directedgraph & G, int nr_scen);
 vector<directedgraph> Generate_Scenarios_Vertex_Tight(const directedgraph & G, int nr_scen);
 cycle_variables HPIEF_Scen_Generate_Cycle_Var(IloEnv &env, const directedgraph & G, const configuration & config, int nr_scen);
 chain_variables HPIEF_Scen_Generate_Chain_Var(IloEnv &env, directedgraph G, const configuration & config, int nr_scen);
@@ -103,6 +106,8 @@ int Vertex_Sum(const cycle_arcs & parent, const cycle_arcs & candidate);
 IloRangeArray Build_Vertex_Constraint_SSWR(IloEnv & env, const directedgraph & G, IloNumVarArray & cyclevar, const vector<cycle_arcs> & cycles);
 IloRangeArray Build_Cycle_Constraint_SSWR(IloEnv &env, const directedgraph & G, IloNumVarArray & cyclevar, IloNumVarArray & arcvar, const vector<cycle_arcs> & cycles);
 void Output_Subset_Recourse(const pre_test_result & results, const configuration & config);
+directedgraph Extend_Graph(const directedgraph & G);
+vector<cycle_arcs> Find_ChainCycles(const directedgraph & G, const configuration & config);
 
 // Functions common to cycle formulations (including robust models)
 vector<cycle_arcs> Find_Cycles(directedgraph G, const configuration & config);
@@ -121,6 +126,7 @@ IloRangeArray Build_Vertex_Constraint_PICEF(IloEnv & env, IloModel &model, direc
 // Chain Flow Constraint from HPIEF.
 
 // Testing Functions
+void Omniscient_Solution(configuration & config);
 float Calc_Expected_Transplants(configuration & config);
 vector<cycle_arcs> Split_SCC(const directedgraph & Tested_G);
 vector<list<int>> G_Adjacency(const directedgraph & tested_G, const vector<bool> & fixed_to_zero);

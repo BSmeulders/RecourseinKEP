@@ -59,6 +59,21 @@ void Choose_Solver(configuration & config, directedgraph & G)
 		cout << "Evaluation of solutions" << endl;
 		Calc_Expected_Transplants(config);
 	}
+	else if (config.solver == 8)
+	{
+		cout << "Cycle Recourse" << endl;
+		Cycle_Recourse(config, G);
+	}
+	else if (config.solver == 9)
+	{
+		cout << "No Recourse" << endl;
+		No_Recourse(config, G);
+	}
+	else if (config.solver == 10)
+	{
+		cout << "Omniscient" << endl;
+		Omniscient_Solution(config);
+	}
 
 }
 

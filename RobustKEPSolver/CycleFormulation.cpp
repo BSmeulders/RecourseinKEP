@@ -2,7 +2,8 @@
 #include "Structures.h"
 #include "Functions.h"
 
-bool Is_already_in_path(const directedgraph & G, const vector<int> & path, int v) {
+bool Is_already_in_path(const directedgraph & G, const vector<int> & path, int v)
+{
 	bool inPath = false;
 	for (int i = 0; i < path.size(); ++i) {
 		if (G.arcs[path[i]].startvertex == v || G.arcs[path[i]].endvertex == v) {

@@ -221,20 +221,20 @@ pre_test_result HPIEF_Scen(directedgraph G, const configuration & config)
 	if(config.solver == 4)
 		CPLEX.setParam(IloCplex::Param::Benders::Strategy, IloCplex::BendersFull);
 
-	std::cout << "Adding to model" << endl;
-	IloNum rhs = 10000;
-	model.add(obj_expr <= rhs);
+	//std::cout << "Adding to model" << endl;
+	//IloNum rhs = 10000;
+	//model.add(obj_expr <= rhs);
 	CPLEX.exportModel("00test.lp");
-	if (config.solver == 3 /*|| config.solver == 4*/)
-	{
+	//if (config.solver == 3 /*|| config.solver == 4*/)
+	//{
 		//CPLEX.use(IntegralSolCut(env, obj_expr)); // Does not appear to work in combination with BendersFull strategy.
 		//CPLEX.setParam(IloCplex::ParallelMode, -1);
 		//CPLEX.setParam(IloCplex::Threads, 8);
-	}
-	cout << "Adding callback" << endl;
+	//}
+	std:: cout << "Adding callback" << endl;
 	IloNum Incumbentvalue = 0;
 	CPLEX.use(writeincumbentcallback(env, config, start_time, G, Testvar, Incumbentvalue));
-	cout << "Added callback" << endl;
+	std::cout << "Added callback" << endl;
 
 	std::cout << "Added to model" << endl;
 	CPLEX.solve();
@@ -344,7 +344,6 @@ vector<directedgraph> Generate_Scenarios_Vertex_Tight(const directedgraph & G, i
 		else
 			remainder = 0;
 		succes_per_vertex[i] = natural + remainder;
-		cout << i << " = " << succes_per_vertex[i] << endl;
 	}
 	for (int i = 0; i < nr_scen; i++)
 	{
@@ -407,7 +406,6 @@ vector<directedgraph> Generate_Scenarios_Vertex(const directedgraph & G, int nr_
 	}
 	return Scenarios;
 }
-
 
 cycle_variables HPIEF_Scen_Generate_Cycle_Var(IloEnv &env, const directedgraph & G, const configuration & config, int nr_scen)
 {
